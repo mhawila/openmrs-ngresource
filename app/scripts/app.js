@@ -2,14 +2,14 @@
 
 /**
  * @ngdoc overview
- * @name openmrsNgresourceApp
+ * @name openmrsNgresource
  * @description
- * # openmrsNgresourceApp
+ * # openmrsNgresource
  *
  * Main module of the application.
  */
 angular
-  .module('openmrsNgresourceApp', [
+  .module('openmrsNgresource', [
     'ngCookies',
     'ngResource'
   ]);
