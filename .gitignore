@@ -6,3 +6,4 @@ bower_components
 app/version.json
 dist.tar.gz
 settings.json
+.code
