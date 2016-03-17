@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/AMPATH/openmrs-ngresource.svg?branch=master)](https://travis-ci.org/AMPATH/openmrs-ngresource)
 # openmrs-ngresource
 
 This project is generated with [yo angular generator](https://github.com/yeoman/generator-angular)
