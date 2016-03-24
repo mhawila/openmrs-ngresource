@@ -28903,7 +28903,7 @@ $provide.value("$locale", {
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 /**
- * @license AngularJS v1.5.0
+ * @license AngularJS v1.5.1
  * (c) 2010-2016 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -29226,7 +29226,7 @@ angular.module('ngCookies').provider('$$cookieWriter', function $$CookieWriterPr
 })(window, window.angular);
 
 /**
- * @license AngularJS v1.5.0
+ * @license AngularJS v1.5.1
  * (c) 2010-2016 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -29938,7 +29938,7 @@ angular.module('ngResource', ['ng']).
               return $q.reject(response);
             });
 
-            promise.finally(function() {
+            promise['finally'](function() {
               value.$resolved = true;
               if (!isInstanceCall && cancellable) {
                 value.$cancelRequest = angular.noop;

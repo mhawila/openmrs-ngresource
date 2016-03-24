@@ -262,14 +262,14 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
 
         return service;
 
-        function getResource() {
+        function getResource(cachingEnabled) {
             var v = 'custom:(uuid,encounterDatetime,' +
                 'patient:(uuid,uuid),form:(uuid,name),' +
                 'location:ref,encounterType:ref,provider:ref,' +
                 'obs:(uuid,obsDatetime,concept:(uuid,uuid),value:ref,groupMembers))';
             return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'encounter/:uuid',
                 { uuid: '@uuid', v: v },
-                { query: { method: 'GET', isArray: false } });
+                { query: { method: 'GET', isArray: false, cache: cachingEnabled? true: false } });
         }
 
         function voidEncounter(uuid, successCallback, errorCallback) {
@@ -284,7 +284,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
             });
         }
 
-        function getEncounterByUuid(params, successCallback, errorCallback) {
+        function getEncounterByUuid(params, successCallback, errorCallback, cachingEnabled) {
             var objParams = {};
             var _customDefaultRep = 'custom:(uuid,encounterDatetime,' +
                 'patient:(uuid,uuid),form:(uuid,name),' +
@@ -300,7 +300,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                     'v': params.rep || _customDefaultRep
                 };
             }
-            Restangular.one('encounter', objParams.encounter).get({ v: objParams.v }).then(function (data) {
+            Restangular.one('encounter', objParams.encounter).withHttpConfig({ cache: cachingEnabled? true: false}).get({ v: objParams.v }).then(function (data) {
                 _successCallbackHandler(successCallback, data);
             },
                 function (error) {
@@ -365,7 +365,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
             }
         }
 
-        function getPatientEncounters(params, successCallback, errorCallback) {
+        function getPatientEncounters(params, successCallback, errorCallback, cachingEnabled) {
             var objParams = {};
 
             // Don't include obs by default
@@ -395,7 +395,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                 objParams = params;
             }
 
-            Restangular.one('encounter').get(objParams).then(function (data) {
+            Restangular.one('encounter').withHttpConfig({ cache: cachingEnabled? true: false}).get(objParams).then(function (data) {
                 if (angular.isDefined(data.results)) data = data.results;
                 _successCallbackHandler(successCallback, data.reverse());
             },
@@ -863,7 +863,7 @@ jshint -W117, -W098, -W116, -W003, -W026
 
   function OpenmrsRestService(session, authService, PatientResService,
               UserResService, EncounterResService, LocationResService,
-              ProviderResService, ObsResService, DrugResService, UserDefaultPropertiesService) {
+              ProviderResService, ObsResService, DrugResService) {
     var service = {
           getSession: getSession,
           getAuthService: getAuthService,
@@ -873,8 +873,7 @@ jshint -W117, -W098, -W116, -W003, -W026
           getEncounterResService: getEncounterService,
           getProviderResService:getProviderResService,
           getObsResService:getObsResService,
-          getDrugResService:getDrugResService,
-          getUserDefaultPropertiesService:getUserDefaultPropertiesService
+          getDrugResService:getDrugResService
         };
 
     return service;
