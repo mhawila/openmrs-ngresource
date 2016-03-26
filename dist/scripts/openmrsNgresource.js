@@ -1269,8 +1269,16 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                 }
             });
       }
-
+      
+      /**
+       * fetches patient visits.
+       * @params is an object which can have the following properties
+       *    patient: patient's uuid
+       *    v: desired data representation from OpenMRS
+       *    caching: Whether to cache or not (true/false) - default is false
+       */
       function getPatientVisits(params, successCallback, errorCallBack) {
+          var caching = false;
           var objParams = {};
           if(angular.isDefined(params) && typeof params === 'string') {
               // params is a patient uuid
@@ -1280,6 +1288,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
               }
           } else {
               var v = params.rep || params.v;
+              caching = params.caching || false;
               objParams = {
                   'patient': params.patientUuid,
                   'v': v || new DefaultCustomRep().getterSetter()
@@ -1297,7 +1306,8 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
               objParams = params;
           }
 
-          Restangular.one('visit').get(objParams).then(function(data) {
+          Restangular.one('visit').withHttpConfig({cache: caching})
+            .get(objParams).then(function(data) {
               if(angular.isDefined(data.results)) data = data.results.reverse();
               _successCallbackHandler(successCallback, data);
           }, function(error) {
@@ -1341,14 +1351,17 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                   'visit:(uuid,visitType:(uuid,name))))';
 
           var visitUuid=null;
+          var caching = false;
           if(angular.isDefined(params) && typeof params === 'object') {
               visitUuid = params.visitUuid;
+              caching = params.caching || false;
           } else {
               //Assume string passed
               visitUuid = params;
           }
 
-          Restangular.one('visit', visitUuid).get({v:rep}).then(function(data) {
+          Restangular.one('visit', visitUuid).withHttpConfig({cache: caching})
+            .get({v:rep}).then(function(data) {
               if(angular.isDefined(data.encounters)) {
                   data = data.encounters.reverse();
               }
