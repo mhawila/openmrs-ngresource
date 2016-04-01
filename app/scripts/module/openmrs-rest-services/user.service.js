@@ -46,7 +46,7 @@ jshint -W003, -W026, -W098
         function (data) {
           console.log('userData');
           console.log(data.results);
-          var result = data.results;
+          var result = data.results || [data];
           if (result.length > 0) {
             //user(userName_, personUuId_, password_, uuId_, systemId_, userRole_)
             service.user = new UserModel.user(result[0].username, result[0].person.uuid, '', result[0].uuid, result[0].systemId, result[0].roles);
