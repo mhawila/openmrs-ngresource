@@ -1759,6 +1759,28 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
     }
 })();
 
+(function() {
+  'use strict';
+  
+  angular
+    .module('openmrs-ngresource.utils')
+      .constant('CONCEPT_UUIDS',conceptMap);
+  
+  /**
+   * Names too long hence abbreviations
+   * CUR_TB_TX_DETAILED = PATIENT REPORTED CURRENT TUBERCULOSIS TREATMENT, DETAILED [grouper concept]
+   * CUR_TB_TX = PATIENT REPORTED CURRENT TUBERCULOSIS TREATMENT
+   * TB_TX_DRUG_STARTED_DETAILED = TB TREATMENT DRUGS STARTED, DETAILED
+   * TB_TX_PLAN = TUBERCULOSIS TREATMENT PLAN
+   */    
+  var conceptMap = {
+    CUR_TB_TX_DETAILED: 'a8afdb8c-1350-11df-a1f1-0026b9348838',
+    CUR_TB_TX: 'a899e444-1350-11df-a1f1-0026b9348838',
+    TB_TX_DRUG_STARTED_DETAILED: 'a89fe6f0-1350-11df-a1f1-0026b9348838',
+    TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838'
+  }
+})();
+
 /*jshint -W003, -W098, -W117, -W026, -W040, -W004 */
 (function() {
     'use strict';
@@ -2158,8 +2180,9 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
       if(openmrsModel.encounterProviders !== undefined) {
           if(openmrsModel.encounterProviders.length > 0) {
               openmrsModel.provider = 
-                            openmrsModel.encounterProviders[0].provider;
+                            openmrsModel.encounterProviders[0].provider;  
           } else {
+            
               openmrsModel.provider = {};
           }
       } else {
@@ -2172,14 +2195,32 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
       openmrsModel.form = openmrsModel.form || {};
 
       //initialize private members
+      var _providerName, _providerIdentifier;
+      if(openmrsModel.provider.person) {
+        _providerName = openmrsModel.provider.person.display || '';
+        _providerIdentifier = openmrsModel.provider.identifier || '';
+      } else {
+        // Split the name & identifier on display field.
+        if(openmrsModel.provider.display) {
+          var temp = openmrsModel.provider.display;
+          var index = temp.lastIndexOf('-');
+          if(index !== -1) {
+            _providerName = temp.substring(index).trim();
+            _providerIdentifier = temp.substring(0,index).trim();
+          } else {
+             //Assume the whole thing is a name
+             _providerName = temp;
+             _providerIdentifier = openmrsModel.provider.identifier || '';
+          }
+        }
+      }
+      
       var _uuid = openmrsModel.uuid || '' ;
       var _patientUuid = openmrsModel.patient.uuid || '';
       var _encounterTypeName = openmrsModel.encounterType.display ||
                                 openmrsModel.encounterType.name || '';
                                 
       var _encounterTypeUuid = openmrsModel.encounterType.uuid || '';
-      var _providerName = openmrsModel.provider.display || 
-                                openmrsModel.provider.name || '';
                                 
       var _providerUuid = openmrsModel.provider.uuid || '';
       var _encounterDate = openmrsModel.encounterDatetime || '';
@@ -2230,7 +2271,14 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
           return _providerName;
         }
       };
-
+      
+      modelDefinition.providerIdentifier = function(value) {
+          if(!angular.isDefined(value)) {
+            return _providerIdentifier;
+          } 
+          _providerIdentifier = value;
+      }
+      
       modelDefinition.providerUuid = function(value) {
         if (angular.isDefined(value)) {
           _providerUuid = value;
