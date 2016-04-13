@@ -24,8 +24,9 @@
       if(openmrsModel.encounterProviders !== undefined) {
           if(openmrsModel.encounterProviders.length > 0) {
               openmrsModel.provider = 
-                            openmrsModel.encounterProviders[0].provider;
+                            openmrsModel.encounterProviders[0].provider;  
           } else {
+            
               openmrsModel.provider = {};
           }
       } else {
@@ -38,14 +39,32 @@
       openmrsModel.form = openmrsModel.form || {};
 
       //initialize private members
+      var _providerName, _providerIdentifier;
+      if(openmrsModel.provider.person) {
+        _providerName = openmrsModel.provider.person.display || '';
+        _providerIdentifier = openmrsModel.provider.identifier || '';
+      } else {
+        // Split the name & identifier on display field.
+        if(openmrsModel.provider.display) {
+          var temp = openmrsModel.provider.display;
+          var index = temp.lastIndexOf('-');
+          if(index !== -1) {
+            _providerName = temp.substring(index).trim();
+            _providerIdentifier = temp.substring(0,index).trim();
+          } else {
+             //Assume the whole thing is a name
+             _providerName = temp;
+             _providerIdentifier = openmrsModel.provider.identifier || '';
+          }
+        }
+      }
+      
       var _uuid = openmrsModel.uuid || '' ;
       var _patientUuid = openmrsModel.patient.uuid || '';
       var _encounterTypeName = openmrsModel.encounterType.display ||
                                 openmrsModel.encounterType.name || '';
                                 
       var _encounterTypeUuid = openmrsModel.encounterType.uuid || '';
-      var _providerName = openmrsModel.provider.display || 
-                                openmrsModel.provider.name || '';
                                 
       var _providerUuid = openmrsModel.provider.uuid || '';
       var _encounterDate = openmrsModel.encounterDatetime || '';
@@ -96,7 +115,14 @@
           return _providerName;
         }
       };
-
+      
+      modelDefinition.providerIdentifier = function(value) {
+          if(!angular.isDefined(value)) {
+            return _providerIdentifier;
+          } 
+          _providerIdentifier = value;
+      }
+      
       modelDefinition.providerUuid = function(value) {
         if (angular.isDefined(value)) {
           _providerUuid = value;
