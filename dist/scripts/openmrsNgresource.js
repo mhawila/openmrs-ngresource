@@ -859,11 +859,12 @@ jshint -W117, -W098, -W116, -W003, -W026
                                 'LocationResService',
                                 'ProviderResService',
                                 'ObsResService',
-                                'DrugResService'];
+                                'DrugResService',
+                                'PatientResRelationshipService'];
 
   function OpenmrsRestService(session, authService, PatientResService,
               UserResService, EncounterResService, LocationResService,
-              ProviderResService, ObsResService, DrugResService) {
+              ProviderResService, ObsResService, DrugResService,PatientResRelationshipService) {
     var service = {
           getSession: getSession,
           getAuthService: getAuthService,
@@ -873,7 +874,8 @@ jshint -W117, -W098, -W116, -W003, -W026
           getEncounterResService: getEncounterService,
           getProviderResService:getProviderResService,
           getObsResService:getObsResService,
-          getDrugResService:getDrugResService
+          getDrugResService:getDrugResService,
+          getPatientRelationshipService:getPatientRelationshipService
         };
 
     return service;
@@ -888,6 +890,10 @@ jshint -W117, -W098, -W116, -W003, -W026
 
     function getPatientService() {
       return PatientResService;
+    }
+
+    function getPatientRelationshipService() {
+      return PatientResRelationshipService;
     }
 
     function getUserService() {
@@ -913,10 +919,10 @@ jshint -W117, -W098, -W116, -W003, -W026
     function getDrugResService() {
       return DrugResService;
     }
-    
+
     function getUserDefaultPropertiesService() {
       return UserDefaultPropertiesService;
-    }    
+    }
   }
 }) ();
 
@@ -1778,6 +1784,51 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
         TB_TX_DRUG_STARTED_DETAILED: 'a89fe6f0-1350-11df-a1f1-0026b9348838',
         TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838'
       });  
+})();
+
+(function(){
+'use strict';
+angular.module('openmrs-ngresource.restServices')
+.service('PatientResRelationshipService',PatientResRelationshipService);
+
+PatientResRelationshipService.$inject = ['OpenmrsSettings', '$resource','PatientRelationshipModel'];
+function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelationshipModel){
+  var service;
+  var currentSession;
+  service = {
+    getResource:getResource,
+    getPatientRelationships: getPatientRelationships
+  };
+  return service;
+  function getResource() {
+    var r = $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationship');
+        return r;
+      }
+
+      function getPatientRelationships(params,successCallback,errorCallback){
+        var patientRelationshipRes=getResource();
+        var patientRelationship={
+          relationships:[]
+        }
+        patientRelationshipRes.get(params).$promise.then(function (data) {
+          angular.forEach(data.results,function(value,key){
+            var relationship;
+            if(params.person==value.personA.uuid)
+            {
+            relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personB.display,value.relationshipType.bIsToA);
+            }
+            else{
+              relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personA.display,value.relationshipType.aIsToB);
+            }
+            patientRelationship.relationships.push(relationship);
+          });
+          successCallback(patientRelationship);
+        })
+        .catch(function(error){
+          errorCallback(error);
+        });
+      }
+}
 })();
 
 /*jshint -W003, -W098, -W117, -W026, -W040, -W004 */
@@ -3124,6 +3175,59 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
   }
 })();
 
+/*jshint -W003, -W098, -W117, -W026, -W040 */
+(function() {
+  'use strict';
+
+  angular
+        .module('openmrs-ngresource.models')
+        .factory('PatientRelationshipModel', factory);
+
+  factory.$inject = [];
+
+  function factory() {
+    var service = {
+      patientRelationship: patientRelationship
+    };
+
+    return service;
+
+function patientRelationship(uuId_,relative_,relationshipTypeName_){
+  var modelDefinition=this;
+  var _uuId=uuId_ ||'';
+  var _relationshipTypeName=relationshipTypeName_||'';
+  var _relative=relative_||'';
+
+  modelDefinition.uuId=function(value){
+    if(angular.isDefined(value)){
+      _uuId=value;
+    }
+    else{
+      return _uuId;
+    }
+  };
+
+  modelDefinition.relationshipTypeName=function(value){
+    if(angular.isDefined(value)){
+      _relationshipTypeName=value;
+    }
+    else{
+      return _relationshipTypeName;
+    }
+  };
+
+  modelDefinition.relative=function(value){
+    if(angular.isDefined(value)){
+      _relative=value;
+    }
+    else{
+      return _relative;
+    }
+  }
+}
+}
+})();
+
 /*jshint -W003, -W098, -W117, -W026, -W040, -W055 */
 (function() {
   'use strict';
@@ -3726,66 +3830,3 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
   }
 
 })();
-
-angular.module('openmrs-ngresource.restServices').run(['$templateCache', function($templateCache) {
-  'use strict';
-
-  $templateCache.put('views/directives/obsview.html',
-    "<style>.panel-heading a:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-heading button.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-heading button:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-heading a.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
-    "\n" +
-    "  .answer {\n" +
-    "    color: green;\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-body {\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }\n" +
-    "  .panel{\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
-    "{{ obsItem.concept.name.display }}\n" +
-    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
-    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
-    "  </span>\n" +
-    "  <span class='answer'>{{ obsItem.value.display }}</span>\n" +
-    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\n" +
-    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\n" +
-    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\n" +
-    "      {{ obsItem.concept.name.display }}\n" +
-    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\n" +
-    "    </div>\n" +
-    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\n" +
-    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div></script>"
-  );
-
-
-  $templateCache.put('views/main.html',
-    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div>"
-  );
-
-}]);
