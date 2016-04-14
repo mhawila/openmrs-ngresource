@@ -1762,23 +1762,22 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
 (function() {
   'use strict';
   
-  angular
-    .module('openmrs-ngresource.utils')
-      .constant('CONCEPT_UUIDS',conceptMap);
-  
   /**
    * Names too long hence abbreviations
    * CUR_TB_TX_DETAILED = PATIENT REPORTED CURRENT TUBERCULOSIS TREATMENT, DETAILED [grouper concept]
    * CUR_TB_TX = PATIENT REPORTED CURRENT TUBERCULOSIS TREATMENT
-   * TB_TX_DRUG_STARTED_DETAILED = TB TREATMENT DRUGS STARTED, DETAILED
+   * TB_TX_DRUG_STARTED_DETAILED = TB TREATMENT DRUGS STARTED, DETAILED [grouper]
    * TB_TX_PLAN = TUBERCULOSIS TREATMENT PLAN
-   */    
-  var conceptMap = {
-    CUR_TB_TX_DETAILED: 'a8afdb8c-1350-11df-a1f1-0026b9348838',
-    CUR_TB_TX: 'a899e444-1350-11df-a1f1-0026b9348838',
-    TB_TX_DRUG_STARTED_DETAILED: 'a89fe6f0-1350-11df-a1f1-0026b9348838',
-    TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838'
-  }
+   */  
+   
+  angular
+    .module('openmrs-ngresource.utils')
+      .constant('CONCEPT_UUIDS', {
+        CUR_TB_TX_DETAILED: 'a8afdb8c-1350-11df-a1f1-0026b9348838',
+        CUR_TB_TX: 'a899e444-1350-11df-a1f1-0026b9348838',
+        TB_TX_DRUG_STARTED_DETAILED: 'a89fe6f0-1350-11df-a1f1-0026b9348838',
+        TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838'
+      });  
 })();
 
 /*jshint -W003, -W098, -W117, -W026, -W040, -W004 */
@@ -3727,66 +3726,3 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
   }
 
 })();
-
-angular.module('openmrs-ngresource.restServices').run(['$templateCache', function($templateCache) {
-  'use strict';
-
-  $templateCache.put('views/directives/obsview.html',
-    "<style>.panel-heading a:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-heading button.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-heading button:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-heading a.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
-    "\n" +
-    "  .answer {\n" +
-    "    color: green;\n" +
-    "  }\n" +
-    "\n" +
-    "  .panel-body {\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }\n" +
-    "  .panel{\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
-    "{{ obsItem.concept.name.display }}\n" +
-    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
-    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
-    "  </span>\n" +
-    "  <span class='answer'>{{ obsItem.value.display }}</span>\n" +
-    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\n" +
-    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\n" +
-    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\n" +
-    "      {{ obsItem.concept.name.display }}\n" +
-    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\n" +
-    "    </div>\n" +
-    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\n" +
-    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div></script>"
-  );
-
-
-  $templateCache.put('views/main.html',
-    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div>"
-  );
-
-}]);
