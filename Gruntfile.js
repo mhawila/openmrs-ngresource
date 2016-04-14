@@ -218,7 +218,7 @@ module.exports = function (grunt) {
             }
           }
       }
-    }, 
+    },
 
     // Renames files for browser caching purposes
     filerev: {
@@ -282,13 +282,6 @@ module.exports = function (grunt) {
     //   }
     // },
     // uglify: {
-    //   dist: {
-    //     files: {
-    //       '<%= yeoman.dist %>/scripts/scripts.js': [
-    //         '<%= yeoman.dist %>/scripts/scripts.js'
-    //       ]
-    //     }
-    //   }
     // },
     // concat: {
     //   dist: {}
@@ -336,9 +329,9 @@ module.exports = function (grunt) {
     ngtemplates: {
       dist: {
         options: {
-          module: 'openmrsNgresourceApp',
+          module: 'openmrs-ngresource.restServices',
           htmlmin: '<%= htmlmin.dist.options %>',
-          usemin: 'scripts/scripts.js'
+          usemin: 'scripts/openmrsNgresource.js'
         },
         cwd: '<%= yeoman.app %>',
         src: 'views/{,*/}*.html',

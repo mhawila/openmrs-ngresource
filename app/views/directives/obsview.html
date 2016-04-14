@@ -1,0 +1,59 @@
+<style>
+  .panel-heading a:after {
+    font-family: 'Glyphicons Halflings';
+    content: "\e114";
+    float: right;
+    color: grey;
+  }
+
+  .panel-heading button.collapsed:after {
+    content: "\e080";
+  }
+
+  .panel-heading button:after {
+    font-family: 'Glyphicons Halflings';
+    content: "\e114";
+    float: right;
+    color: grey;
+  }
+
+  .panel-heading a.collapsed:after {
+    content: "\e080";
+  }
+
+  .answer {
+    color: green;
+  }
+
+  .panel-body {
+    padding: 2px;
+    margin: 0px;
+  }
+  .panel{
+    padding: 2px;
+    margin: 0px;
+  }
+</style>
+<div class="panel panel-default">
+  <div class="panel-body" ng-repeat="obsItem in obs" ng-include="'obsTree'"> </div>
+</div>
+
+<script type="text/ng-template" id="obsTree">
+  <span ng-if="obsItem.value">
+{{ obsItem.concept.name.display }}
+<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>
+<span ng-if="!obsItem.groupMembers.length > 0"> > </span>
+  </span>
+  <span class='answer'>{{ obsItem.value.display }}</span>
+  <span  class='answer' ng-if="obsItem.value && !obsItem.value.display ">{{formatDate(obsItem.value) }}</span>
+  <div ng-if="obsItem.groupMembers.length > 0" class="panel panel-default">
+    <div ng-if="obsItem.groupMembers.length > 0" class="panel-heading">
+      {{ obsItem.concept.name.display }}
+      <button data-toggle="collapse" data-target="#collapse{{ $index + 1 }}" class="btn  collapsed btn-xs pull-right"></button>
+    </div>
+    <div id="collapse{{ $index + 1 }}" class="panel-collapse collapse">
+      <div class="panel-body" ng-repeat="obsItem in obsItem.groupMembers" ng-include="'obsTree'">
+      </div>
+    </div>
+  </div>
+</script>
