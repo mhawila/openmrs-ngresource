@@ -23,16 +23,16 @@
       // Take care of provider special case
       if(openmrsModel.encounterProviders !== undefined) {
           if(openmrsModel.encounterProviders.length > 0) {
-              openmrsModel.provider = 
-                            openmrsModel.encounterProviders[0].provider;  
+              openmrsModel.provider =
+                            openmrsModel.encounterProviders[0].provider;
           } else {
-            
+
               openmrsModel.provider = {};
           }
       } else {
           openmrsModel.provider = openmrsModel.provider || {};
       }
-      
+
       openmrsModel.encounterType = openmrsModel.encounterType || {};
       openmrsModel.patient = openmrsModel.patient || {};
       openmrsModel.location = openmrsModel.location || {};
@@ -58,20 +58,20 @@
           }
         }
       }
-      
+
       var _uuid = openmrsModel.uuid || '' ;
       var _patientUuid = openmrsModel.patient.uuid || '';
       var _encounterTypeName = openmrsModel.encounterType.display ||
                                 openmrsModel.encounterType.name || '';
-                                
+
       var _encounterTypeUuid = openmrsModel.encounterType.uuid || '';
-                                
+
       var _providerUuid = openmrsModel.provider.uuid || '';
       var _encounterDate = openmrsModel.encounterDatetime || '';
-      
-      var _locationName = openmrsModel.location.display || 
+
+      var _locationName = openmrsModel.location.display ||
                                     openmrsModel.location.name || '';
-                                    
+
       var _locationUuid = openmrsModel.location.uuid || '';
       var _formUuid = openmrsModel.form.uuid || '';
       var _formName = openmrsModel.form.name || '';
@@ -115,14 +115,14 @@
           return _providerName;
         }
       };
-      
+
       modelDefinition.providerIdentifier = function(value) {
           if(!angular.isDefined(value)) {
             return _providerIdentifier;
-          } 
+          }
           _providerIdentifier = value;
-      }
-      
+      };
+
       modelDefinition.providerUuid = function(value) {
         if (angular.isDefined(value)) {
           _providerUuid = value;

@@ -45,9 +45,9 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
         function getEncounterByUuid(params, successCallback, errorCallback, cachingEnabled) {
             var objParams = {};
             var _customDefaultRep = 'custom:(uuid,encounterDatetime,' +
-                'patient:(uuid,uuid),form:(uuid,name),' +
+                'patient:(uuid,uuid,identifiers),form:(uuid,name),' +
                 'location:ref,encounterType:ref,provider:ref,' +
-                'obs:(uuid,obsDatetime,concept:(uuid,uuid),value:ref,groupMembers))';
+                'obs:(uuid,obsDatetime,concept:(uuid,uuid,name:(display)),value:ref,groupMembers))';
 
             if (angular.isDefined(params) && typeof params === 'string') {
                 var encounterUuid = params;

@@ -287,9 +287,9 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
         function getEncounterByUuid(params, successCallback, errorCallback, cachingEnabled) {
             var objParams = {};
             var _customDefaultRep = 'custom:(uuid,encounterDatetime,' +
-                'patient:(uuid,uuid),form:(uuid,name),' +
+                'patient:(uuid,uuid,identifiers),form:(uuid,name),' +
                 'location:ref,encounterType:ref,provider:ref,' +
-                'obs:(uuid,obsDatetime,concept:(uuid,uuid),value:ref,groupMembers))';
+                'obs:(uuid,obsDatetime,concept:(uuid,uuid,name:(display)),value:ref,groupMembers))';
 
             if (angular.isDefined(params) && typeof params === 'string') {
                 var encounterUuid = params;
@@ -2179,16 +2179,16 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
       // Take care of provider special case
       if(openmrsModel.encounterProviders !== undefined) {
           if(openmrsModel.encounterProviders.length > 0) {
-              openmrsModel.provider = 
-                            openmrsModel.encounterProviders[0].provider;  
+              openmrsModel.provider =
+                            openmrsModel.encounterProviders[0].provider;
           } else {
-            
+
               openmrsModel.provider = {};
           }
       } else {
           openmrsModel.provider = openmrsModel.provider || {};
       }
-      
+
       openmrsModel.encounterType = openmrsModel.encounterType || {};
       openmrsModel.patient = openmrsModel.patient || {};
       openmrsModel.location = openmrsModel.location || {};
@@ -2214,20 +2214,20 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
           }
         }
       }
-      
+
       var _uuid = openmrsModel.uuid || '' ;
       var _patientUuid = openmrsModel.patient.uuid || '';
       var _encounterTypeName = openmrsModel.encounterType.display ||
                                 openmrsModel.encounterType.name || '';
-                                
+
       var _encounterTypeUuid = openmrsModel.encounterType.uuid || '';
-                                
+
       var _providerUuid = openmrsModel.provider.uuid || '';
       var _encounterDate = openmrsModel.encounterDatetime || '';
-      
-      var _locationName = openmrsModel.location.display || 
+
+      var _locationName = openmrsModel.location.display ||
                                     openmrsModel.location.name || '';
-                                    
+
       var _locationUuid = openmrsModel.location.uuid || '';
       var _formUuid = openmrsModel.form.uuid || '';
       var _formName = openmrsModel.form.name || '';
@@ -2271,14 +2271,14 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
           return _providerName;
         }
       };
-      
+
       modelDefinition.providerIdentifier = function(value) {
           if(!angular.isDefined(value)) {
             return _providerIdentifier;
-          } 
+          }
           _providerIdentifier = value;
-      }
-      
+      };
+
       modelDefinition.providerUuid = function(value) {
         if (angular.isDefined(value)) {
           _providerUuid = value;
@@ -3572,6 +3572,110 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
   }
 })();
 
+/*jshint -W003, -W098, -W117, -W026, -W040 */
+(function() {
+  'use strict';
+
+  angular
+    .module('openmrs-ngresource.models')
+    .factory('ObsModel', ObsModel);
+
+  ObsModel.$inject = [];
+
+  function ObsModel() {
+    var service = {
+      model: Model,
+      toArrayOfModels: toArrayOfModels
+    };
+
+    return service;
+
+    function Model(openmrsModel) {
+      var modelDefinition = this;
+
+      openmrsModel.concept = openmrsModel.concept || {};
+
+      //initialize private members
+      var _display = openmrsModel.display || '';
+      var _uuid = openmrsModel.uuid || '';
+      var _obsDatetime = openmrsModel.obsDatetime || '';
+      var _concept = openmrsModel.concept || {};
+      var _groupMembers = openmrsModel.groupMembers || [];
+      var _value = openmrsModel.value || '';
+
+      modelDefinition.display = function(value) {
+        if (angular.isDefined(value)) {
+          _display = value;
+        } else {
+          return _display;
+        }
+      };
+
+      modelDefinition.value = function(value) {
+        if (angular.isDefined(value)) {
+          _value = value;
+        } else {
+          return _value;
+        }
+      };
+
+      modelDefinition.uuid = function(value) {
+        if (angular.isDefined(value)) {
+          _uuid = value;
+        } else {
+          return _uuid;
+        }
+      };
+
+      modelDefinition.obsDateTime = function(value) {
+        if (angular.isDefined(value)) {
+          _patientUuid = value;
+        } else {
+          return _patientUuid;
+        }
+      };
+
+      modelDefinition.concept = function(value) {
+        if (angular.isDefined(value)) {
+          _encounterTypeName = value;
+        } else {
+          return _encounterTypeName;
+        }
+      };
+
+      modelDefinition.openmrsModel = function() {
+        /* jshint ignore:start */
+        return {
+          "uuid": _uuid,
+          "obsDatetime": _obsDatetime,
+          "concept": _concept,
+        };
+        /* jshint ignore:end */
+      };
+      modelDefinition.groupMembers = function(value) {
+        if (angular.isDefined(value)) {
+          _groupMembers = value;
+        } else {
+          return _groupMembers;
+        }
+      };
+    }
+
+    function toArrayOfModels(obsArray) {
+      var modelArray = [];
+      for (var i = 0; i < obsArray.length; i++) {
+        if (obsArray[i].groupMembers !== null && obsArray[i].groupMembers.length > 0) {
+          obsArray[i].groupMembers = toArrayOfModels(obsArray[i].groupMembers);
+          modelArray.push(new Model(obsArray[i]));
+        } else {
+          modelArray.push(new Model(obsArray[i]));
+        }
+      }
+      return modelArray;
+    }
+  }
+})();
+
 /*jshint -W098, -W030 */
 (function() {
   'use strict';
@@ -3589,3 +3693,100 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
     };
   } 
 })();
+
+/* global angular */
+/*
+ jshint -W003, -W026
+ */
+(function() {
+  'use strict';
+
+  angular
+    .module('openmrs-ngresource.restServices')
+    .directive('obsview', obsview);
+
+  function obsview() {
+    return {
+      restict: 'E',
+      controller: obsviewController,
+      scope: {
+        obs: '=',
+      },
+      templateUrl: 'views/directives/obsview.html',
+    };
+
+  }
+  obsviewController.$inject = ['$scope','$filter'];
+  function obsviewController($scope,$filter) {
+    $scope.formatDate = function (date) {
+      if (isNaN(date)){
+        date = $filter('date')(date,'dd/MM/yyyy');
+      }
+      return date;
+    };
+  }
+
+})();
+
+angular.module('openmrs-ngresource.restServices').run(['$templateCache', function($templateCache) {
+  'use strict';
+
+  $templateCache.put('views/directives/obsview.html',
+    "<style>.panel-heading a:after {\n" +
+    "    font-family: 'Glyphicons Halflings';\n" +
+    "    content: \"\\e114\";\n" +
+    "    float: right;\n" +
+    "    color: grey;\n" +
+    "  }\n" +
+    "\n" +
+    "  .panel-heading button.collapsed:after {\n" +
+    "    content: \"\\e080\";\n" +
+    "  }\n" +
+    "\n" +
+    "  .panel-heading button:after {\n" +
+    "    font-family: 'Glyphicons Halflings';\n" +
+    "    content: \"\\e114\";\n" +
+    "    float: right;\n" +
+    "    color: grey;\n" +
+    "  }\n" +
+    "\n" +
+    "  .panel-heading a.collapsed:after {\n" +
+    "    content: \"\\e080\";\n" +
+    "  }\n" +
+    "\n" +
+    "  .answer {\n" +
+    "    color: green;\n" +
+    "  }\n" +
+    "\n" +
+    "  .panel-body {\n" +
+    "    padding: 2px;\n" +
+    "    margin: 0px;\n" +
+    "  }\n" +
+    "  .panel{\n" +
+    "    padding: 2px;\n" +
+    "    margin: 0px;\n" +
+    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
+    "{{ obsItem.concept.name.display }}\n" +
+    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
+    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
+    "  </span>\n" +
+    "  <span class='answer'>{{ obsItem.value.display }}</span>\n" +
+    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\n" +
+    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\n" +
+    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\n" +
+    "      {{ obsItem.concept.name.display }}\n" +
+    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\n" +
+    "    </div>\n" +
+    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\n" +
+    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div></script>"
+  );
+
+
+  $templateCache.put('views/main.html',
+    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div>"
+  );
+
+}]);
