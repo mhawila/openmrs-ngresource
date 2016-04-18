@@ -8,9 +8,9 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
         .module('openmrs-ngresource.restServices')
         .factory('EncounterResService', EncounterResService);
 
-    EncounterResService.$inject = ['Restangular', 'OpenmrsSettings', '$resource'];
+    EncounterResService.$inject = ['Restangular', 'OpenmrsSettings', '$resource', '$q'];
 
-    function EncounterResService(Restangular, OpenmrsSettings, $resource) {
+    function EncounterResService(Restangular, OpenmrsSettings, $resource, $q) {
         var service = {
             getEncounterByUuid: getEncounterByUuid,
             saveEncounter: saveEncounter,
@@ -151,17 +151,28 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                 params.v = objParams.v;
 
                 objParams = params;
-            }
-
-            Restangular.one('encounter').withHttpConfig({ cache: cachingEnabled? true: false}).get(objParams).then(function (data) {
-                if (angular.isDefined(data.results)) data = data.results;
-                _successCallbackHandler(successCallback, data.reverse());
-            },
-                function (error) {
-                    console.log('An error occured while attempting to fetch encounters ' +
-                        'for patient with uuid ' + params.patientUuid);
-                    if (typeof errorCallback === 'function') errorCallback(error);
-                });
+            }    
+                
+            var promise = Restangular.one('encounter').withHttpConfig({ cache: cachingEnabled? true: false})
+                              .get(objParams).then(function(data) {
+                                if (angular.isDefined(data.results)) data = data.results;
+                                return $q.resolve(data.reverse());
+                              }, function (error) {
+                                console.error('An error occured while attempting to fetch encounters ' +
+                                    'for patient with uuid ' + params.patientUuid);
+                                return $q.reject(error);
+                              });
+                              
+            if(typeof successCallback === 'function') {
+              return promise.then(function (data) {
+                  successCallback(data);
+              }, function (error) {
+                  if (typeof errorCallback === 'function') errorCallback(error);
+              });
+            } else {
+              //Just return the promise
+              return promise;
+            }      
         }
 
         function _successCallbackHandler(successCallback, data) {
