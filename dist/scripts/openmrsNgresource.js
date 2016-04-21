@@ -1794,8 +1794,16 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
         CUR_TB_TX: 'a899e444-1350-11df-a1f1-0026b9348838',
         TB_TX_DRUG_STARTED_DETAILED: 'a89fe6f0-1350-11df-a1f1-0026b9348838',
         TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838',
+        TB_PROPHY_PLAN: 'a89c1cfa-1350-11df-a1f1-0026b9348838',
+        REPORTED_CUR_TB_PROPHY: 'a899e35e-1350-11df-a1f1-0026b9348838',
+        START_DRUGS: 'a89b77aa-1350-11df-a1f1-0026b9348838',
+        DRUG_RESTART: 'a8a00220-1350-11df-a1f1-0026b9348838',
+        RESTART_DRUGS: 'a8a00220-1350-11df-a1f1-0026b9348838',    // same as previous
+        CONTINUE_REGIMEN: 'a89b7908-1350-11df-a1f1-0026b9348838',
+        STOP: 'a89b7d36-1350-11df-a1f1-0026b9348838',
         CC_HPI: 'a89ffbf4-1350-11df-a1f1-0026b9348838',
-        ASSESSMENT: '23f710cc-7f9c-4255-9b6b-c3e240215dba'
+        ASSESSMENT: '23f710cc-7f9c-4255-9b6b-c3e240215dba',
+        NONE: 'a899e0ac-1350-11df-a1f1-0026b9348838'
       });  
 })();
 
