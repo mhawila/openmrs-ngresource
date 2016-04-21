@@ -250,9 +250,9 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
         .module('openmrs-ngresource.restServices')
         .factory('EncounterResService', EncounterResService);
 
-    EncounterResService.$inject = ['Restangular', 'OpenmrsSettings', '$resource'];
+    EncounterResService.$inject = ['Restangular', 'OpenmrsSettings', '$resource', '$q'];
 
-    function EncounterResService(Restangular, OpenmrsSettings, $resource) {
+    function EncounterResService(Restangular, OpenmrsSettings, $resource, $q) {
         var service = {
             getEncounterByUuid: getEncounterByUuid,
             saveEncounter: saveEncounter,
@@ -393,17 +393,28 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                 params.v = objParams.v;
 
                 objParams = params;
-            }
-
-            Restangular.one('encounter').withHttpConfig({ cache: cachingEnabled? true: false}).get(objParams).then(function (data) {
-                if (angular.isDefined(data.results)) data = data.results;
-                _successCallbackHandler(successCallback, data.reverse());
-            },
-                function (error) {
-                    console.log('An error occured while attempting to fetch encounters ' +
-                        'for patient with uuid ' + params.patientUuid);
-                    if (typeof errorCallback === 'function') errorCallback(error);
-                });
+            }    
+                
+            var promise = Restangular.one('encounter').withHttpConfig({ cache: cachingEnabled? true: false})
+                              .get(objParams).then(function(data) {
+                                if (angular.isDefined(data.results)) data = data.results;
+                                return $q.resolve(data.reverse());
+                              }, function (error) {
+                                console.error('An error occured while attempting to fetch encounters ' +
+                                    'for patient with uuid ' + params.patientUuid);
+                                return $q.reject(error);
+                              });
+                              
+            if(typeof successCallback === 'function') {
+              return promise.then(function (data) {
+                  successCallback(data);
+              }, function (error) {
+                  if (typeof errorCallback === 'function') errorCallback(error);
+              });
+            } else {
+              //Just return the promise
+              return promise;
+            }      
         }
 
         function _successCallbackHandler(successCallback, data) {
@@ -1152,7 +1163,7 @@ jshint -W003, -W026, -W098
     return service;
 
     function getResource() {
-      var v = 'custom:(uuid,username,systemId,roles:(uuid,name,privileges),person:(uuid,preferredName))'; // avoid spaces in this string
+      var v = 'custom:(uuid,username,systemId,roles:(uuid,name,privileges),person:(uuid))'; // avoid spaces in this string
       var r = $resource(settings.getCurrentRestUrlBase().trim() + 'user/:uuid',
         { uuid: '@uuid', v: v },
         { query: { method: 'GET', isArray: false } }
@@ -1782,7 +1793,9 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
         CUR_TB_TX_DETAILED: 'a8afdb8c-1350-11df-a1f1-0026b9348838',
         CUR_TB_TX: 'a899e444-1350-11df-a1f1-0026b9348838',
         TB_TX_DRUG_STARTED_DETAILED: 'a89fe6f0-1350-11df-a1f1-0026b9348838',
-        TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838'
+        TB_TX_PLAN: 'a89c1fd4-1350-11df-a1f1-0026b9348838',
+        CC_HPI: 'a89ffbf4-1350-11df-a1f1-0026b9348838',
+        ASSESSMENT: '23f710cc-7f9c-4255-9b6b-c3e240215dba'
       });  
 })();
 
