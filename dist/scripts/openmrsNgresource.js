@@ -1729,12 +1729,8 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
             var results=_.filter($rootScope.cachedLocations,
                     function(l){
                         // console.log('location ', l);
-                        if(l.description!==null||l.description!=='null'){
-                            return (_.contains(l.name.toLowerCase(),searchText.toLowerCase())||
-                                    _.contains(l.description.toLowerCase(),searchText.toLowerCase()));
-                        }else{
-                            return (_.contains(l.name.toLowerCase(),searchText.toLowerCase()));
-                        }
+                      return (_.contains(l.name.toLowerCase(),searchText.toLowerCase()));
+
 
                     });
 
@@ -2644,7 +2640,7 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
       };
 
       modelDefinition.display = function (value) {
-        return _name + ' [' + _description + ']';
+        return _name ;
       };
 
       modelDefinition.openmrsModel = function(value) {
