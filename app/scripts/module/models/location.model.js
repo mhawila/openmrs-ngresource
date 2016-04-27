@@ -220,7 +220,7 @@
       };
 
       modelDefinition.display = function (value) {
-        return _name + ' [' + _description + ']';
+        return _name ;
       };
 
       modelDefinition.openmrsModel = function(value) {

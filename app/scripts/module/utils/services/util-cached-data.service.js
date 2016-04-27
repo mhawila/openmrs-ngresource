@@ -38,12 +38,8 @@
             var results=_.filter($rootScope.cachedLocations,
                     function(l){
                         // console.log('location ', l);
-                        if(l.description!==null||l.description!=='null'){
-                            return (_.contains(l.name.toLowerCase(),searchText.toLowerCase())||
-                                    _.contains(l.description.toLowerCase(),searchText.toLowerCase()));
-                        }else{
-                            return (_.contains(l.name.toLowerCase(),searchText.toLowerCase()));
-                        }
+                      return (_.contains(l.name.toLowerCase(),searchText.toLowerCase()));
+
 
                     });
 
