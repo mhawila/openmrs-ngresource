@@ -871,11 +871,13 @@ jshint -W117, -W098, -W116, -W003, -W026
                                 'ProviderResService',
                                 'ObsResService',
                                 'DrugResService',
-                                'PatientResRelationshipService'];
+                                'PatientResRelationshipService',
+                                'PatientRelationshipTypeResService'];
 
   function OpenmrsRestService(session, authService, PatientResService,
               UserResService, EncounterResService, LocationResService,
-              ProviderResService, ObsResService, DrugResService,PatientResRelationshipService) {
+              ProviderResService, ObsResService, DrugResService,
+              PatientResRelationshipService,PatientRelationshipTypeResService) {
     var service = {
           getSession: getSession,
           getAuthService: getAuthService,
@@ -886,7 +888,8 @@ jshint -W117, -W098, -W116, -W003, -W026
           getProviderResService:getProviderResService,
           getObsResService:getObsResService,
           getDrugResService:getDrugResService,
-          getPatientRelationshipService:getPatientRelationshipService
+          getPatientRelationshipService:getPatientRelationshipService,
+          getPatientRelationshipTypeService:getPatientRelationshipTypeService
         };
 
     return service;
@@ -906,7 +909,9 @@ jshint -W117, -W098, -W116, -W003, -W026
     function getPatientRelationshipService() {
       return PatientResRelationshipService;
     }
-
+    function getPatientRelationshipTypeService() {
+      return PatientRelationshipTypeResService;
+    }
     function getUserService() {
       return UserResService;
     }
@@ -1814,7 +1819,11 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
   var currentSession;
   service = {
     getResource:getResource,
-    getPatientRelationships: getPatientRelationships
+    getPatientRelationships: getPatientRelationships,
+    updatePatientRelationship:updatePatientRelationship,
+    setResource:setResource,
+    setPurgeResource:setPurgeResource,
+    purgePatientRelationship:purgePatientRelationship
   };
   return service;
   function getResource() {
@@ -1832,10 +1841,10 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
             var relationship;
             if(params.person==value.personA.uuid)
             {
-            relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personB.display,value.relationshipType.bIsToA);
+            relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personB.display,value.relationshipType.bIsToA,value.personB.uuid,value.relationshipType.uuid);
             }
             else{
-              relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personA.display,value.relationshipType.aIsToB);
+              relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personA.display,value.relationshipType.aIsToB,value.personA.uuid,value.relationshipType.uuid);
             }
             patientRelationship.relationships.push(relationship);
           });
@@ -1844,6 +1853,84 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
         .catch(function(error){
           errorCallback(error);
         });
+      }
+      function setResource() {
+        var resource = $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationship/:uuid');
+        return resource;
+          }
+    function updatePatientRelationship(relationshipUuId,payload,successCallback,errorCallback){
+      var relationshipRes=setResource();
+      relationshipRes.save({uuid:relationshipUuId},payload).$promise
+      .then(function(success){
+        successCallback(success);
+      })
+      .catch(function(error){
+        errorCallback(error);
+      });
+    }
+    function setPurgeResource(){
+      var resource=$resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationship/:uuid');
+      return resource;
+    }
+    function purgePatientRelationship(relationshipUuId,successCallback,errorCallback){
+      var purgeResource=setPurgeResource();
+      purgeResource.delete({uuid:relationshipUuId}).$promise
+      .then(function(success){
+        successCallback(success);
+      })
+      .catch(function(error){
+        errorCallback(error);
+      });
+    }
+}
+})();
+
+(function(){
+'use strict';
+angular.module('openmrs-ngresource.restServices')
+.service('PatientRelationshipTypeResService',PatientRelationshipTypeResService);
+
+PatientRelationshipTypeResService.$inject = ['OpenmrsSettings', '$resource','PatientRelationshipTypeModel'];
+function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRelationshipTypeModel){
+  var service;
+  var currentSession;
+  service = {
+    getResource:getResource,
+    getPatientRelationshipTypes: getPatientRelationshipTypes,
+    setPatientRelationship:setPatientRelationship
+  };
+  return service;
+  function getResource() {
+    var r = $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationshiptype');
+        return r;
+      }
+
+      function getPatientRelationshipTypes(successCallback,errorCallback){
+        var patientRelationshipTypesRes=getResource();
+        var patientRelationshipTypes={
+          relationshipTypes:[]
+        }
+        patientRelationshipTypesRes.get().$promise.then(function (data) {
+          console.log("original relationship payload ",data);
+          angular.forEach(data.results,function(value,key){
+            var relationshipType;
+            relationshipType=new PatientRelationshipTypeModel.patientRelationshipType(value.uuid,value.display);
+            patientRelationshipTypes.relationshipTypes.push(relationshipType);
+          });
+          successCallback(patientRelationshipTypes);
+        })
+        .catch(function(error){
+          errorCallback(error);
+        });
+      }
+      function setResource(){
+        var resource=$resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationship');
+        return resource;
+      }
+      function setPatientRelationship(params,successCallback,errorCallback){
+        var patientRelationshipResource=setResource();
+        patientRelationshipResource.save(params).$promise.then(function(data){
+        }).catch(function(error){});
       }
 }
 })();
@@ -3209,11 +3296,13 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
 
     return service;
 
-function patientRelationship(uuId_,relative_,relationshipTypeName_){
+function patientRelationship(uuId_,relative_,relationshipTypeName_,personUuId_,relationshipTypeUuId_){
   var modelDefinition=this;
   var _uuId=uuId_ ||'';
   var _relationshipTypeName=relationshipTypeName_||'';
   var _relative=relative_||'';
+  var _personUuId=personUuId_||'';
+  var _relationshipTypeUuId=relationshipTypeUuId_||'';
 
   modelDefinition.uuId=function(value){
     if(angular.isDefined(value)){
@@ -3241,6 +3330,65 @@ function patientRelationship(uuId_,relative_,relationshipTypeName_){
       return _relative;
     }
   }
+  modelDefinition.personUuId=function(value){
+    if(angular.isDefined(value)){
+      _personUuId=value;
+    }
+    else{
+      return _personUuId;
+    }
+  }
+  modelDefinition.relationshipTypeUuId=function(value){
+    if(angular.isDefined(value)){
+      _relationshipTypeUuId=value;
+    }
+    else{
+      return _relationshipTypeUuId;
+    }
+  }
+}
+}
+})();
+
+/*jshint -W003, -W098, -W117, -W026, -W040 */
+(function() {
+  'use strict';
+
+  angular
+        .module('openmrs-ngresource.models')
+        .factory('PatientRelationshipTypeModel', factory);
+
+  factory.$inject = [];
+
+  function factory() {
+    var service = {
+      patientRelationshipType: patientRelationshipType
+    };
+
+    return service;
+
+function patientRelationshipType(uuId_,display_){
+  var modelDefinition=this;
+  var _uuId=uuId_ ||'';
+  var _display=display_||'';
+
+  modelDefinition.uuId=function(value){
+    if(angular.isDefined(value)){
+      _uuId=value;
+    }
+    else{
+      return _uuId;
+    }
+  };
+
+  modelDefinition.display=function(value){
+    if(angular.isDefined(value)){
+      _display=value;
+    }
+    else{
+      return _display;
+    }
+  };
 }
 }
 })();

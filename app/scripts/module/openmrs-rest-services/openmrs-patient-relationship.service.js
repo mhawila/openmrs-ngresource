@@ -9,7 +9,11 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
   var currentSession;
   service = {
     getResource:getResource,
-    getPatientRelationships: getPatientRelationships
+    getPatientRelationships: getPatientRelationships,
+    updatePatientRelationship:updatePatientRelationship,
+    setResource:setResource,
+    setPurgeResource:setPurgeResource,
+    purgePatientRelationship:purgePatientRelationship
   };
   return service;
   function getResource() {
@@ -27,10 +31,10 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
             var relationship;
             if(params.person==value.personA.uuid)
             {
-            relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personB.display,value.relationshipType.bIsToA);
+            relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personB.display,value.relationshipType.bIsToA,value.personB.uuid,value.relationshipType.uuid);
             }
             else{
-              relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personA.display,value.relationshipType.aIsToB);
+              relationship=new PatientRelationshipModel.patientRelationship(value.uuid,value.personA.display,value.relationshipType.aIsToB,value.personA.uuid,value.relationshipType.uuid);
             }
             patientRelationship.relationships.push(relationship);
           });
@@ -40,5 +44,33 @@ function PatientResRelationshipService(OpenmrsSettings,$resource,PatientRelation
           errorCallback(error);
         });
       }
+      function setResource() {
+        var resource = $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationship/:uuid');
+        return resource;
+          }
+    function updatePatientRelationship(relationshipUuId,payload,successCallback,errorCallback){
+      var relationshipRes=setResource();
+      relationshipRes.save({uuid:relationshipUuId},payload).$promise
+      .then(function(success){
+        successCallback(success);
+      })
+      .catch(function(error){
+        errorCallback(error);
+      });
+    }
+    function setPurgeResource(){
+      var resource=$resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'relationship/:uuid');
+      return resource;
+    }
+    function purgePatientRelationship(relationshipUuId,successCallback,errorCallback){
+      var purgeResource=setPurgeResource();
+      purgeResource.delete({uuid:relationshipUuId}).$promise
+      .then(function(success){
+        successCallback(success);
+      })
+      .catch(function(error){
+        errorCallback(error);
+      });
+    }
 }
 })();
