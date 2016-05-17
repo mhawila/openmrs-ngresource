@@ -1929,8 +1929,13 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
       }
       function setPatientRelationship(params,successCallback,errorCallback){
         var patientRelationshipResource=setResource();
-        patientRelationshipResource.save(params).$promise.then(function(data){
-        }).catch(function(error){});
+        patientRelationshipResource.save(params).$promise
+        .then(function(data){
+          successCallback(data);
+        })
+        .catch(function(error){
+          errorCallback(error);
+        });
       }
 }
 })();
