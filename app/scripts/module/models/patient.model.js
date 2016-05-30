@@ -76,7 +76,7 @@
           var kenyaNationalId =getIdentifierByType(identifier, 'KENYAN NATIONAL ID NUMBER');
           var amrsMrn =getIdentifierByType(identifier, 'AMRS Medical Record Number');
           var ampathMrsUId=getIdentifierByType(identifier, 'AMRS Universal ID');
-          var cCC=getIdentifierByType(identifier, 'CCC');
+          var cCC=getIdentifierByType(identifier, 'CCC Number');
           if(angular.isUndefined(kenyaNationalId) && angular.isUndefined(amrsMrn) &&
             angular.isUndefined(ampathMrsUId) && angular.isUndefined(cCC))
           {
