@@ -20,13 +20,14 @@
     var httpBackend;
     var formService;
     var settingsService;
-    var v = 'custom:(uuid,name,encounterType,version)';
+    var v;
 
     beforeEach(inject(function($injector) {
       httpBackend = $injector.get('$httpBackend');
       formService = $injector.get('FormResService');
       settingsService = $injector.get('OpenmrsSettings');
       mockData = $injector.get('mockData');
+      v = $injector.get('FORM_REP');
     }));
 
     beforeEach(inject(function() {
@@ -89,6 +90,10 @@
       expect(formService.findPocForms).to.be.an('function');
       expect(formService.getFormByUuid).to.be.an('function');
     });
-
+    
+    it('getFormSchema should request an appropriate rest end point given '
+     + 'form uuid', function() {
+       
+     });
   });
 })();
