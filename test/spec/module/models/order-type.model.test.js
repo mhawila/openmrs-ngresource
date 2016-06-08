@@ -4,7 +4,7 @@ jshint -W030
 (function() {
   'use strict';
 
-  describe.only('OrderTypeModel Factory Unit Tests', function() {
+  describe('OrderTypeModel Factory Unit Tests', function() {
       beforeEach(function() {
         module('openmrs-ngresource.models');
       });

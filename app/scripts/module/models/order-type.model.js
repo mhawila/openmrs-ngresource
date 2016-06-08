@@ -90,18 +90,18 @@
             openmrsModel.display, openmrsModel.retired, openmrsModel.uuid);
         }
 
-        function toArrayOfWrappers(openmrsNameArray) {
+        function toArrayOfWrappers(openmrsOrderTypeArray) {
             var array = [];
-            for (var i = 0; i < openmrsNameArray.length; i++) {
-                array.push(toWrapper(openmrsNameArray[i]));
+            for (var i = 0; i < openmrsOrderTypeArray.length; i++) {
+                array.push(toWrapper(openmrsOrderTypeArray[i]));
             }
             return array;
         }
 
-        function fromArrayOfWrappers(nameWrappersArray) {
+        function fromArrayOfWrappers(orderTypeWrappersArray) {
             var array = [];
-            for (var i = 0; i < nameWrappersArray.length; i++) {
-                array.push(nameWrappersArray[i].fromWrapper());
+            for (var i = 0; i < orderTypeWrappersArray.length; i++) {
+                array.push(orderTypeWrappersArray[i].fromWrapper());
             }
             return array;
         }
