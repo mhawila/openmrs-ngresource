@@ -54,7 +54,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W004, -W033, -W030, -W117
     it('Should call the appropriate rest end point when getEncounterByUuid is called', function() {
       var customDefaultRep = 'custom:(uuid,encounterDatetime,' +
         'patient:(uuid,uuid,identifiers),form:(uuid,name),' +
-        'location:ref,encounterType:ref,provider:ref,' +
+        'location:ref,encounterType:ref,provider:ref,orders:full,' +
         'obs:(uuid,obsDatetime,concept:(uuid,uuid,name:(display)),value:ref,groupMembers))';
       httpBackend.expectGET(testRestUrl + 'encounter/encounter-test-uuid?v=' +
         customDefaultRep).respond(dummyEncounter);

@@ -46,7 +46,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
             var objParams = {};
             var _customDefaultRep = 'custom:(uuid,encounterDatetime,' +
                 'patient:(uuid,uuid,identifiers),form:(uuid,name),' +
-                'location:ref,encounterType:ref,provider:ref,' +
+                'location:ref,encounterType:ref,provider:ref,orders:full,' +
                 'obs:(uuid,obsDatetime,concept:(uuid,uuid,name:(display)),value:ref,groupMembers))';
 
             if (angular.isDefined(params) && typeof params === 'string') {
