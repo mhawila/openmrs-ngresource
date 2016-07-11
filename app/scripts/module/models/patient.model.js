@@ -41,7 +41,7 @@
       var _dead = openmrsPatient.person.dead||'';
       var _deathDate = formatDate(openmrsPatient.person.deathDate)||'';
       var _attributes = openmrsPatient.person.attributes||[];
-      //var _causeOfDeath = openmrsPatient.causeOfDeath||'';
+      var _causeOfDeath = openmrsPatient.person.causeOfDeath||'';
       /*
        Below are getters and setters for private properties
        The convention is usually to name private properties starting with _
@@ -213,14 +213,14 @@
       //   }
       // };
       //
-      // modelDefinition.causeOfDeath = function(value){
-      //   if(angular.isDefined(value)){
-      //     _causeOfDeath = value;
-      //   }
-      //   else{
-      //     return _causeOfDeath;
-      //   }
-      // };
+      modelDefinition.causeOfDeath = function(value){
+        if(angular.isDefined(value)){
+          _causeOfDeath = value;
+        }
+        else{
+          return _causeOfDeath;
+        }
+      };
       modelDefinition.phoneNumber = function(value) {
         var phoneNumberPersonAttributeTypeUuid='72a759a8-1359-11df-a1f1-0026b9348838';
         return getPersonAttribute(phoneNumberPersonAttributeTypeUuid);
@@ -296,8 +296,8 @@
           gender:_gender,
         //  address:_address,
           dead:_dead,
-          deathDate:_deathDate
-          //causeOfDeath:_causeOfDeath,
+          deathDate:_deathDate,
+          causeOfDeath:_causeOfDeath
           //attributes:_attributes,
           //birthdateEstimated:_birthdateEstimated
 
