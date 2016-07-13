@@ -948,12 +948,14 @@ jshint -W117, -W098, -W116, -W003, -W026
                                 'ObsResService',
                                 'DrugResService',
                                 'PatientResRelationshipService',
-                                'PatientRelationshipTypeResService'];
+                                'PatientRelationshipTypeResService',
+                                'OrderResService'];
 
   function OpenmrsRestService(session, authService, PatientResService,
               UserResService, EncounterResService, LocationResService,
               ProviderResService, ObsResService, DrugResService,
-              PatientResRelationshipService,PatientRelationshipTypeResService) {
+              PatientResRelationshipService,PatientRelationshipTypeResService,
+              OrderResService) {
     var service = {
           getSession: getSession,
           getAuthService: getAuthService,
@@ -965,7 +967,8 @@ jshint -W117, -W098, -W116, -W003, -W026
           getObsResService:getObsResService,
           getDrugResService:getDrugResService,
           getPatientRelationshipService:getPatientRelationshipService,
-          getPatientRelationshipTypeService:getPatientRelationshipTypeService
+          getPatientRelationshipTypeService:getPatientRelationshipTypeService,
+          getOrderResService:getOrderResService
         };
 
     return service;
@@ -1014,6 +1017,10 @@ jshint -W117, -W098, -W116, -W003, -W026
 
     function getUserDefaultPropertiesService() {
       return UserDefaultPropertiesService;
+    }
+
+    function getOrderResService() {
+      return OrderResService;
     }
   }
 }) ();
@@ -2043,9 +2050,10 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
                 { query: { method: 'GET', isArray: false } });
         }
 
-         function getDeleteResource() {
+
+        function getDeleteResource() {
             return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'order/:uuid?purge',
-                { uuid: '@uuid'},
+                { uuid: '@uuid' },
                 { query: { method: 'GET', isArray: false } });
         }
 
@@ -2056,8 +2064,19 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
                 { query: { method: 'GET', isArray: false } });
         }
 
-        function getOrderByUuid(orderUuid, successCallback, failedCallback) {
-            var resource = getResource();
+        function getCustomResource(customResource) {
+            if (customResource === false) return getResource();
+
+            var v = customResource === undefined || customResource === true ?
+                'custom:(display,uuid,orderNumber,accessionNumber,orderReason,orderReasonNonCoded,urgency,action,' +
+                'commentToFulfiller,dateActivated,instructions,orderer:default,encounter:full,patient:default,concept:ref)' : customResource;
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'order/:uuid',
+                { uuid: '@uuid', v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function getOrderByUuid(orderUuid, successCallback, failedCallback, customResource) {
+            var resource = getCustomResource(customResource);
             return resource.get({ uuid: orderUuid }).$promise
                 .then(function (response) {
                     successCallback(response);
@@ -2069,8 +2088,8 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
                 });
         }
 
-        function getOrdersByPatientUuid(patientUuid, successCallback, failedCallback) {
-            var resource = getResource();
+        function getOrdersByPatientUuid(patientUuid, successCallback, failedCallback, customResource) {
+            var resource = getCustomResource(customResource);
             return resource.get({ patient: patientUuid }).$promise
                 .then(function (response) {
                     successCallback(response);
@@ -2116,7 +2135,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
 
         function deleteOrder(order, successCallback, failedCallback) {
             var resource = getDeleteResource();
-            return resource.delete({ uuid: order.uuid}).$promise
+            return resource.delete({ uuid: order.uuid }).$promise
                 .then(function (response) {
                     successCallback(response);
                 })
