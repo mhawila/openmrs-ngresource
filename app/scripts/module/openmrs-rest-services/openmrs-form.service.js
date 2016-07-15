@@ -19,7 +19,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
 
   function FormResService(OpenmrsSettings, $resource, Restangular, $q, FORM_REP) {
     // Some local variables
-    var _baseRestUrl = OpenmrsSettings.getCurrentRestUrlBase().trim();
+    var _baseRestUrl = null;
     
     var serviceDefinition;
 
@@ -34,7 +34,8 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     return serviceDefinition;
     
     function getFormBaseUrl() {
-      return _baseRestUrl;
+      return _baseRestUrl !== null ? _baseRestUrl 
+                    : OpenmrsSettings.getCurrentRestUrlBase().trim();
     }
     
     function setFormBaseUrl(url) {
