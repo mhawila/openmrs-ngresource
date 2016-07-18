@@ -11,13 +11,16 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
 
   FormResService.$inject = [
     'OpenmrsSettings',
+    '$http',
     '$resource',
     'Restangular',
     '$q',
+    '$log',
     'FORM_REP'
   ];
 
-  function FormResService(OpenmrsSettings, $resource, Restangular, $q, FORM_REP) {
+  function FormResService(OpenmrsSettings, $http, $resource, Restangular, $q, 
+    $log, FORM_REP) {
     // Some local variables
     var _baseRestUrl = null;
     
@@ -26,7 +29,10 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     serviceDefinition = {
       getFormByUuid: getFormByUuid,
       getFormSchemaByUuid: getFormSchemaByUuid,
-      findPocForms: findPocForms,        
+      findPocForms: findPocForms,
+      uploadFormResource: uploadFormResource,
+      saveForm: saveForm,
+      saveFormResource: saveFormResource,        
       getFormBaseUrl: getFormBaseUrl,
       setFormBaseUrl: setFormBaseUrl
     };
@@ -51,7 +57,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       return $resource(getFormBaseUrl() + 'form?q=:q&v=' + FORM_REP,
         { q: '@q' }, { query: { method: 'GET', isArray: false } });
     }
-
+    
     function findPocForms(searchText, successCallback, failedCallback) {
       var promise = __getSearchResource().get({ q: searchText }).$promise
         .then(function(response) {
@@ -120,6 +126,62 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
         .catch(function (err) {
           return $q.reject(err);
       });
+    }
+    
+    /**
+     * uploadFormResource takes a raw file and returns a promise
+     * if successfully the openmrs server returns the uuid of the newly
+     * created resource.
+     * @params file a Blob instance 
+     *            (see #https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+     * @return promise/Future for the request to the file.
+     */
+    function uploadFormResource(file) {
+      if(file === null || file === undefined) {
+        throw new Error('Error: Function expects a raw file object argument');
+      }
+      var formData = new FormData();
+      formData.append('file', file);
+      
+      var uploadUrl = getFormBaseUrl() + 'clobdata';
+      
+      return $http.post(uploadUrl, formData, {
+        transformRequest: angular.identity,
+        transformResponse: angular.identity,
+        headers: { 'Content-Type': undefined}
+      });
+    }
+    
+    /**
+     * saveForm takes form openmrs payload and saves post it returning a promise
+     * @param form: an openmrs rest form payload
+     * @return promise
+     */
+    function saveForm(form) {
+      if(form === null || form === undefined) {
+        throw new Error('Error: Function expects an openmrs form payload argument');
+      }
+      return $resource(getFormBaseUrl() + 'form').save(form).$promise;
+    }
+     
+    /**
+     * saveFormResource() post a resource for a given form uuid
+     * @param formUuid: uuid of the form for which resource is to be posted
+     * @param resource: Openmrs form resource payload
+     * @return promise of posted resource
+     */
+    function saveFormResource(formUuid, resource) {
+      if(arguments.length !== 2) {
+        throw new Error('Error: Function expects a form uuid and a resource '
+                        + ' as arguments in that order');
+      }
+      
+      if(resource.dataType === undefined) {
+        $log.debug('Saving resource without datatype');
+      }
+      
+      var urlSuffix = 'form/' + formUuid + '/resource';
+      return $resource(getFormBaseUrl() + urlSuffix).save(resource).$promise;
     }
     
     function wrapForms(forms) {

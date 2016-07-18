@@ -2,6 +2,7 @@
 jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W116, -W069, -W026
 */
 /*jscs:disable requireDotNotation, requirePaddingNewLinesBeforeLineComments, requireTrailingComma*/
+/* This service is Deprecated, please use FormService instead*/
 (function() {
   'use strict';
 
