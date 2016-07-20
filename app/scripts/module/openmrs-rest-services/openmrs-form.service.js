@@ -32,7 +32,8 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       findPocForms: findPocForms,
       uploadFormResource: uploadFormResource,
       saveForm: saveForm,
-      saveFormResource: saveFormResource,        
+      saveFormResource: saveFormResource,
+      deleteFormResource: deleteFormResource,        
       getFormBaseUrl: getFormBaseUrl,
       setFormBaseUrl: setFormBaseUrl
     };
@@ -183,6 +184,22 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       var urlSuffix = 'form/' + formUuid + '/resource';
       return $resource(getFormBaseUrl() + urlSuffix).save(resource).$promise;
     }
+    
+    /**
+     * deleteFormResource() send a request to remove a given resource from openmrs
+     * @param formUuid: uuid of the form associated with the resource
+     * @param resourceUuid: uuid of the resource to be deleted
+     * @return promise of the delete request 
+     */
+    function deleteFormResource(formUuid, resourceUuid) {
+      if(arguments.length !== 2) {
+        throw new Error('Error: Function expects a form uuid and a resource uuid'
+                        + ' as arguments in that order');
+      }
+      
+      var urlSuffix = 'form/' + formUuid + '/resource/' + resourceUuid;
+      return $resource(getFormBaseUrl() + urlSuffix).delete().$promise;
+    } 
     
     function wrapForms(forms) {
       var wrappedObjects = [];

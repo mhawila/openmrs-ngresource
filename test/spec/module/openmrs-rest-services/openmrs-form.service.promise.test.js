@@ -171,7 +171,8 @@
     
     it('saveFormResource should throw error if wrong number of arguments ' +
        'is passed', function() {
-      expect(formService.saveFormResource.bind(formService)).to.throw(Error);   
+      expect(formService.saveFormResource.bind(formService)).to.throw(Error);
+      expect(formService.deleteFormResource.bind(formService)).to.throw(Error);   
     });
     
     it('saveFormResource should post resource to right uri', function() {
@@ -190,6 +191,17 @@
         expect(data.uuid).to.equal(response.uuid);
       });
       
+      httpBackend.flush();
+    });
+    
+    it('deleteFormResource should send a request to delete a resource', 
+    function() {
+      var expectUrl = testUrl + 'form/form-uuid/resource/resource-uuid';
+      httpBackend.expectDELETE(expectUrl).respond(204,'');
+      
+      formService.deleteFormResource('form-uuid','resource-uuid').then(function(data) {
+        // expect(data).to.equal('');  //Nothing returned
+      });
       httpBackend.flush();
     });
   });   
