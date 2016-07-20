@@ -127,6 +127,70 @@
       expect(function(){ formService.getFormSchemaByUuid() }).to.throw.error;
       expect(function(){ formService.getFormSchemaByUuid({stuff:'stuff'}) })
         .to.throw.error;
-    });      
-  });
+    }); 
+    
+    it('uploadFormResource() should post the passed file blob', function() {
+      var data = new Blob([JSON.stringify({test:'data'}, null, 2)], 
+                                            {type:'application/json'});
+      
+      var formData = new FormData();
+      formData.append('file', data);
+                                            
+      httpBackend.expectPOST(testUrl + 'clobdata', formData)
+       .respond('uuid-created-resource');
+      
+      formService.uploadFormResource(data).then(function(res) {
+        console.log(JSON.stringify(res));
+        expect(res.data).to.equal('uuid-created-resource');
+      });
+      
+      httpBackend.flush();
+    });
+    
+    it('uploadFormResource() should throw exception if no file is passed',
+       function() {
+      expect(formService.uploadFormResource.bind(formService,null)).to.throw(Error);    
+    });
+    
+    it('saveForm() should throw error when argument is null', function() {
+      expect(formService.saveForm.bind(formService)).to.throw(Error);     
+    });
+    
+    it('saveForm() should post to backend with correct uri', function() {
+      var dummyForm = {
+        name: 'New Form',
+        version: '1.0'
+      };
+      var response = _.extend({}, dummyForm, { uuid: 'new-form-uuid'});
+      httpBackend.expectPOST(testUrl + 'form', dummyForm).respond(201, response);
+      formService.saveForm(dummyForm).then(function(data) {
+        expect(data.uuid).to.equal(response.uuid);
+      });
+      httpBackend.flush();
+    });
+    
+    it('saveFormResource should throw error if wrong number of arguments ' +
+       'is passed', function() {
+      expect(formService.saveFormResource.bind(formService)).to.throw(Error);   
+    });
+    
+    it('saveFormResource should post resource to right uri', function() {
+      var formUuid = 'some-uuid';
+      var resource = {
+        name: 'test-resource',
+        dataType: 'AmpathJsonSchema',
+        valueReference: 'some-existing-clob-uuid'
+      }
+      var response = _.extend({}, resource, {uuid:'new-created-uuid'});
+      
+      httpBackend.expectPOST(testUrl + 'form/' + formUuid + '/resource')
+        .respond(201, response);
+        
+      formService.saveFormResource(formUuid, resource).then(function(data) {
+        expect(data.uuid).to.equal(response.uuid);
+      });
+      
+      httpBackend.flush();
+    });
+  });   
 })();
