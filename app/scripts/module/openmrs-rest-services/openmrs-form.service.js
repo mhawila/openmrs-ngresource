@@ -211,11 +211,12 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     }
     
     function __toModel(openmrsForm) {
+      var encounterType = openmrsForm.encounterType || {};
       return {
         uuid:openmrsForm.uuid,
         name: openmrsForm.name,
-        encounterTypeUuid: openmrsForm.encounterType.uuid,
-        encounterTypeName: openmrsForm.encounterType.name,
+        encounterTypeUuid: encounterType.uuid,
+        encounterTypeName: encounterType.name,
         version: openmrsForm.version,
         published: openmrsForm.published,
         resources: openmrsForm.resources || []
