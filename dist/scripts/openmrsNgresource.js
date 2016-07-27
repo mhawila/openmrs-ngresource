@@ -288,7 +288,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
             var objParams = {};
             var _customDefaultRep = 'custom:(uuid,encounterDatetime,' +
                 'patient:(uuid,uuid,identifiers),form:(uuid,name),' +
-                'location:ref,encounterType:ref,provider:ref,' +
+                'location:ref,encounterType:ref,provider:ref,orders:full,' +
                 'obs:(uuid,obsDatetime,concept:(uuid,uuid,name:(display)),value:ref,groupMembers))';
 
             if (angular.isDefined(params) && typeof params === 'string') {
@@ -714,22 +714,29 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
 
   FormResService.$inject = [
     'OpenmrsSettings',
+    '$http',
     '$resource',
     'Restangular',
     '$q',
+    '$log',
     'FORM_REP'
   ];
 
-  function FormResService(OpenmrsSettings, $resource, Restangular, $q, FORM_REP) {
+  function FormResService(OpenmrsSettings, $http, $resource, Restangular, $q, 
+    $log, FORM_REP) {
     // Some local variables
-    var _baseRestUrl = OpenmrsSettings.getCurrentRestUrlBase().trim();
+    var _baseRestUrl = null;
     
     var serviceDefinition;
 
     serviceDefinition = {
       getFormByUuid: getFormByUuid,
       getFormSchemaByUuid: getFormSchemaByUuid,
-      findPocForms: findPocForms,        
+      findPocForms: findPocForms,
+      uploadFormResource: uploadFormResource,
+      saveForm: saveForm,
+      saveFormResource: saveFormResource,
+      deleteFormResource: deleteFormResource,        
       getFormBaseUrl: getFormBaseUrl,
       setFormBaseUrl: setFormBaseUrl
     };
@@ -737,7 +744,8 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     return serviceDefinition;
     
     function getFormBaseUrl() {
-      return _baseRestUrl;
+      return _baseRestUrl !== null ? _baseRestUrl 
+                    : OpenmrsSettings.getCurrentRestUrlBase().trim();
     }
     
     function setFormBaseUrl(url) {
@@ -753,7 +761,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       return $resource(getFormBaseUrl() + 'form?q=:q&v=' + FORM_REP,
         { q: '@q' }, { query: { method: 'GET', isArray: false } });
     }
-
+    
     function findPocForms(searchText, successCallback, failedCallback) {
       var promise = __getSearchResource().get({ q: searchText }).$promise
         .then(function(response) {
@@ -824,6 +832,78 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       });
     }
     
+    /**
+     * uploadFormResource takes a raw file and returns a promise
+     * if successfully the openmrs server returns the uuid of the newly
+     * created resource.
+     * @params file a Blob instance 
+     *            (see #https://developer.mozilla.org/en-US/docs/Web/API/Blob)
+     * @return promise/Future for the request to the file.
+     */
+    function uploadFormResource(file) {
+      if(file === null || file === undefined) {
+        throw new Error('Error: Function expects a raw file object argument');
+      }
+      var formData = new FormData();
+      formData.append('file', file);
+      
+      var uploadUrl = getFormBaseUrl() + 'clobdata';
+      
+      return $http.post(uploadUrl, formData, {
+        transformRequest: angular.identity,
+        transformResponse: angular.identity,
+        headers: { 'Content-Type': undefined}
+      });
+    }
+    
+    /**
+     * saveForm takes form openmrs payload and saves post it returning a promise
+     * @param form: an openmrs rest form payload
+     * @return promise
+     */
+    function saveForm(form) {
+      if(form === null || form === undefined) {
+        throw new Error('Error: Function expects an openmrs form payload argument');
+      }
+      return $resource(getFormBaseUrl() + 'form').save(form).$promise;
+    }
+     
+    /**
+     * saveFormResource() post a resource for a given form uuid
+     * @param formUuid: uuid of the form for which resource is to be posted
+     * @param resource: Openmrs form resource payload
+     * @return promise of posted resource
+     */
+    function saveFormResource(formUuid, resource) {
+      if(arguments.length !== 2) {
+        throw new Error('Error: Function expects a form uuid and a resource '
+                        + ' as arguments in that order');
+      }
+      
+      if(resource.dataType === undefined) {
+        $log.debug('Saving resource without datatype');
+      }
+      
+      var urlSuffix = 'form/' + formUuid + '/resource';
+      return $resource(getFormBaseUrl() + urlSuffix).save(resource).$promise;
+    }
+    
+    /**
+     * deleteFormResource() send a request to remove a given resource from openmrs
+     * @param formUuid: uuid of the form associated with the resource
+     * @param resourceUuid: uuid of the resource to be deleted
+     * @return promise of the delete request 
+     */
+    function deleteFormResource(formUuid, resourceUuid) {
+      if(arguments.length !== 2) {
+        throw new Error('Error: Function expects a form uuid and a resource uuid'
+                        + ' as arguments in that order');
+      }
+      
+      var urlSuffix = 'form/' + formUuid + '/resource/' + resourceUuid;
+      return $resource(getFormBaseUrl() + urlSuffix).delete().$promise;
+    } 
+    
     function wrapForms(forms) {
       var wrappedObjects = [];
       _.each(forms, function(_form) {
@@ -834,11 +914,12 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     }
     
     function __toModel(openmrsForm) {
+      var encounterType = openmrsForm.encounterType || {};
       return {
         uuid:openmrsForm.uuid,
         name: openmrsForm.name,
-        encounterTypeUuid: openmrsForm.encounterType.uuid,
-        encounterTypeName: openmrsForm.encounterType.name,
+        encounterTypeUuid: encounterType.uuid,
+        encounterTypeName: encounterType.name,
         version: openmrsForm.version,
         published: openmrsForm.published,
         resources: openmrsForm.resources || []
@@ -1131,7 +1212,7 @@ jshint -W117, -W098, -W116, -W003, -W026
     }
 
     function searchResource() {
-        return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'provider?q=:search&v=default',
+      return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'provider?q=:search&v=default',
         { search: '@search' },
         { query: { method: 'GET', isArray: false } });
     }
@@ -1140,37 +1221,64 @@ jshint -W117, -W098, -W116, -W003, -W026
       var resource = getResource();
       return resource.get({ uuid: uuid }).$promise
         .then(function (response) {
-        successCallback(response);
-      })
+          successCallback(response);
+        })
         .catch(function (error) {
-        failedCallback('Error processing request', error);
-        console.error(error);
-      });
+          failedCallback('Error processing request', error);
+          console.error(error);
+        });
     }
 
     function getProviderByPersonUuid(uuid, successCallback, failedCallback) {
       var resource = getPersonResource();
       return resource.get({ uuid: uuid }).$promise
         .then(function (response) {
-        var provider = {person:response, display:response.display };
-        successCallback(provider);
-      })
+          // var provider = {person:response, display:response.display };
+          // successCallback(provider);
+          if (response) {
+            findProvider(response.display,
+              function (providers) {
+                var foundProvider;
+                _.each(providers, function (provider) {
+                  if (provider.person && provider.person.uuid === uuid) {
+                    foundProvider = provider;
+                  }
+                });
+
+                if (foundProvider) {
+                  if (foundProvider.display === '') {
+                    foundProvider.display = foundProvider.person.display;
+                  }
+                  successCallback(foundProvider);
+                } else {
+                  var msg = 'Error processing request: No provider with given person uuid found';
+                  failedCallback(msg);
+                  console.error(msg);
+                }
+
+              }, failedCallback);
+          } else {
+            var msg = 'Error processing request: No person with given uuid found';
+            failedCallback(msg);
+            console.error(msg);
+          }
+        })
         .catch(function (error) {
-        failedCallback('Error processing request', error);
-        console.error(error);
-      });
+          failedCallback('Error processing request', error);
+          console.error(error);
+        });
     }
 
     function findProvider(searchText, successCallback, failedCallback) {
       var resource = searchResource();
       return resource.get({ search: searchText }).$promise
         .then(function (response) {
-           successCallback(response.results? response.results: response);
-      })
+          successCallback(response.results ? response.results : response);
+        })
         .catch(function (error) {
-        failedCallback('Error processing request', error);
-        console.error(error);
-      });
+          failedCallback('Error processing request', error);
+          console.error(error);
+        });
     }
   }
 })();
@@ -2050,7 +2158,6 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
                 { query: { method: 'GET', isArray: false } });
         }
 
-
         function getDeleteResource() {
             return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'order/:uuid?purge',
                 { uuid: '@uuid' },
@@ -2065,7 +2172,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
         }
 
         function getCustomResource(customResource) {
-            if (customResource === false) return getResource();
+            if (customResource === false || customResource === undefined) return getResource();
 
             var v = customResource === undefined || customResource === true ?
                 'custom:(display,uuid,orderNumber,accessionNumber,orderReason,orderReasonNonCoded,urgency,action,' +
@@ -2152,7 +2259,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
   
   angular
     .module('openmrs-ngresource.restServices')
-    .constant('FORM_REP', 'custom:(uuid,name,encounterType(uuid,name),version,' +
+    .constant('FORM_REP', 'custom:(uuid,name,encounterType:(uuid,name),version,' +
                        'published,resources:(uuid,name,dataType,valueReference))');
 })();
 
@@ -4691,11 +4798,38 @@ function patientRelationshipType(uuId_,display_){
 
 })();
 
+(function() {
+  'use strict';
+  angular
+    .module('openmrs-ngresource.restServices')
+    .directive('fileModel', fileModel);
+  
+  fileModel.$inject = [
+    '$parse'
+  ];    
+  
+  function fileModel($parse) {
+    return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+            var model = $parse(attrs.fileModel);
+            var modelSetter = model.assign;
+            
+            element.bind('change', function(){
+                scope.$apply(function(){
+                    modelSetter(scope, element[0].files[0]);
+                });
+            });
+        }
+    };
+  }
+})();
+
 angular.module('openmrs-ngresource.restServices').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('views/directives/obsview.html',
-    "<style> .panel-heading a:after {\n" +
+    "<style>.panel-heading a:after {\n" +
     "    font-family: 'Glyphicons Halflings';\n" +
     "    content: \"\\e114\";\n" +
     "    float: right;\n" +
@@ -4728,7 +4862,7 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
     "  .panel{\n" +
     "    padding: 2px;\n" +
     "    margin: 0px;\n" +
-    "  } </style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"> <span ng-if=\"obsItem.value\">\n" +
+    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
     "{{ obsItem.concept.name.display }}\n" +
     "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
     "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
@@ -4744,12 +4878,12 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
     "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "  </div> </script> "
+    "  </div></script>"
   );
 
 
   $templateCache.put('views/main.html',
-    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div> "
+    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div>"
   );
 
 }]);
