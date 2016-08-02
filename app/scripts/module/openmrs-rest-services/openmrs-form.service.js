@@ -49,9 +49,16 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       _baseRestUrl = url;
     }
     
-    function __getResource() {
+    function __getResource(cachingEnabled, rep) {
+      var rep = rep || FORM_REP;
       return $resource(getFormBaseUrl() + 'form/:uuid?v=' + FORM_REP,
-        { uuid: '@uuid' },{ query: { method: 'GET', isArray: false } });
+        { uuid: '@uuid' },{ 
+          query: { 
+            method: 'GET',
+            isArray: false ,
+            cache: cachingEnabled? true: false 
+          } 
+        });
     }
     
     function __getSearchResource() {
@@ -71,13 +78,26 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
         __handleCallbacks(promise, successCallback, failedCallback);
         return promise;
     }
-
-    function getFormByUuid(uuid, successCallback, failedCallback) {
-      var resource = __getResource();
-      var promise = resource.get({ uuid: uuid }).$promise
+    
+    /**
+     * getFormByUuid accepts params which can be simple uuid string or an object
+     * containing uuid & representation along with caching option.
+     * @param params: can be string form uuid or object
+     * @return a promise of the rest request.
+     */
+    function getFormByUuid(params, successCallback, failedCallback) {
+      if (angular.isDefined(params) && typeof params === 'string') {
+          var formUuid = params;
+          var resource = __getResource();
+      } else {
+          var formUuid = params.uuid;
+          var rep = params.v || FORM_REP;
+          var cachingEnabled = params.caching ? true : false;
+          var resource = __getResource(cachingEnabled, rep);
+      }
+      var promise = resource.query({ uuid: formUuid }).$promise
         .then(function(data) {
           return __toModel(data);
-          // successCallback(__toModel(data));
         })
         .catch(function(err) {
            return $q.reject(err);
