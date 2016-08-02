@@ -51,7 +51,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     
     function __getResource(cachingEnabled, rep) {
       var rep = rep || FORM_REP;
-      return $resource(getFormBaseUrl() + 'form/:uuid?v=' + FORM_REP,
+      return $resource(getFormBaseUrl() + 'form/:uuid?v=' + rep,
         { uuid: '@uuid' },{ 
           query: { 
             method: 'GET',
