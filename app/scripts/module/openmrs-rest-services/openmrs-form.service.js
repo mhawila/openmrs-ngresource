@@ -235,11 +235,13 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       return {
         uuid:openmrsForm.uuid,
         name: openmrsForm.name,
+        description: openmrsForm.description,
         encounterTypeUuid: encounterType.uuid,
         encounterTypeName: encounterType.name,
         version: openmrsForm.version,
         published: openmrsForm.published,
-        resources: openmrsForm.resources || []
+        resources: openmrsForm.resources || [],
+        auditInfo: openmrsForm.auditInfo
       };
     }
     
