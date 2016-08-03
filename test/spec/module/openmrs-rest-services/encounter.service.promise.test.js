@@ -41,6 +41,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W004, -W033, -W030, -W117
 
       //  Set restangular URL
       $injector.get('Restangular').setBaseUrl(testRestUrl);
+      OpenmrsSettings.setCurrentRestUrlBase(testRestUrl);
     }));
 
     afterEach(function() {
@@ -96,6 +97,21 @@ jshint -W026, -W116, -W098, -W003, -W068, -W004, -W033, -W030, -W117
         expect(data[1].uuid).to.equal('encounter-uuid-for-first-element');
       }, function(error) {
         console.log('Error')
+      });
+      httpBackend.flush();
+    });
+    
+    it.only('getEncounterTypes should return a promise to be fullfilled', function() {
+      httpBackend.expectGET(testRestUrl + 'encountertype').respond({results:[{
+        uuid: 'type-1-uuid',
+        display: 'type-1'
+      }, {
+        uuid: 'type-2-uuid',
+        display: 'type-2'
+      }]});
+      encounterResService.getEncounterTypes().then(function(data) {
+        var types = data.results;
+        expect(types).to.be.an.array;
       });
       httpBackend.flush();
     });

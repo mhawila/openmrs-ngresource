@@ -15,7 +15,8 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
             getEncounterByUuid: getEncounterByUuid,
             saveEncounter: saveEncounter,
             getPatientEncounters: getPatientEncounters,
-            voidEncounter: voidEncounter
+            voidEncounter: voidEncounter,
+            getEncounterTypes: getEncounterTypes
         };
 
         return service;
@@ -77,18 +78,6 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                 var uuid = _encounter.uuid;
                 delete _encounter['uuid'];
 
-                console.log('update json');
-                console.log(JSON.stringify(_encounter));
-                //updating an existing encounter
-                // Restangular.one('encounter', uuid).customPOST(JSON.stringify(_encounter)).then(function (success) {
-                //     console.log('Encounter saved successfully');
-                //     if (typeof successCallback === 'function') successCallback(success);
-                // },
-                //     function (error) {
-                //         console.log('Error saving encounter');
-                //         if (typeof errorCallback === 'function') errorCallback(error);
-                //    });
-
                 encounterResource.save({ uuid: uuid }, JSON.stringify(_encounter)).$promise
                     .then(function (data) {
                         console.log('Encounter saved successfully');
@@ -101,14 +90,6 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                     });
             }
             else {
-                // Restangular.service('encounter').post(encounter).then(function (success) {
-                //     console.log('Encounter saved successfully');
-                //     if (typeof successCallback === 'function') successCallback(success);
-                // },
-                //     function (error) {
-                //         console.log('Error saving encounter');
-                //         if (typeof errorCallback === 'function') errorCallback(error);
-                //     });
                 encounterResource.save(encounter).$promise
                     .then(function (data) {
                         console.log('Encounter saved successfully');
@@ -174,7 +155,39 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
               return promise;
             }      
         }
-
+        
+        /**
+         * getEncounterTypes fetches encounter types currently defined in the system
+         * @param params: either a simple string standing for desired representation or
+         *        an object which can have a v(representation) and caching (true/false)
+         * @return a promise
+         */ 
+        function getEncounterTypes(params) {
+          var baseUrl = OpenmrsSettings.getCurrentRestUrlBase().trim() + 'encountertype'; 
+          if(params) {
+            if(typeof params === 'string') {
+              var type = $resource(baseUrl, {v:params}, {
+                query: { method: 'GET', isArray:false, cache: true}
+              });
+            } else {
+              // Assume an object
+                var type = $resource(baseUrl, {v:params.v}, {
+                  query: { 
+                    method: 'GET',
+                    isArray:false,
+                    cache: params.caching ? true : false}
+                });
+            }
+          } else {
+            //No params passed
+            var type = $resource(baseUrl, {}, {
+              query: { method: 'GET', isArray:false, cache: true}
+            });
+          }
+          
+          return type.query().$promise;
+        }
+        
         function _successCallbackHandler(successCallback, data) {
             if (typeof successCallback !== 'function') {
                 console.log('Error: You need a callback function to process' +
