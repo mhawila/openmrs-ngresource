@@ -197,12 +197,35 @@
     it('deleteFormResource should send a request to delete a resource', 
     function() {
       var expectUrl = testUrl + 'form/form-uuid/resource/resource-uuid';
-      httpBackend.expectDELETE(expectUrl).respond(204,'');
-      
-      formService.deleteFormResource('form-uuid','resource-uuid').then(function(data) {
-        // expect(data).to.equal('');  //Nothing returned
-      });
+      httpBackend.expectDELETE(expectUrl).respond(204);
+      formService.deleteFormResource('form-uuid','resource-uuid');
       httpBackend.flush();
     });
+    
+    it('deleteFormSchemaByUuid should send a request to delete ' +
+     'schema/clobdata', function() {
+       var testUuid = 'schema-test-uuid';
+       var expectUrl = testUrl + 'clobdata/' + testUuid;
+       httpBackend.expectDELETE(expectUrl).respond(200);
+       formService.deleteFormSchemaByUuid(testUuid);
+       httpBackend.flush();
+     });
+     
+     it.only('updateForm() should post to backend with correct uri', function() {
+       var dummyForm = {
+         name: 'New Form',
+         version: '1.0'
+       };
+       var formUuid = 'test-form-uuid';
+       var response = _.extend({}, dummyForm, { uuid: formUuid});
+       
+       httpBackend.expectPOST(testUrl + 'form/' + formUuid, dummyForm)
+       .respond(201, response);
+       
+       formService.updateForm(formUuid, dummyForm).then(function(data) {
+         expect(data.uuid).to.equal(formUuid);
+       });
+       httpBackend.flush();
+     });
   });   
 })();

@@ -29,9 +29,11 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     serviceDefinition = {
       getFormByUuid: getFormByUuid,
       getFormSchemaByUuid: getFormSchemaByUuid,
+      deleteFormSchemaByUuid: deleteFormSchemaByUuid,
       findPocForms: findPocForms,
       uploadFormResource: uploadFormResource,
       saveForm: saveForm,
+      updateForm: updateForm,
       saveFormResource: saveFormResource,
       deleteFormResource: deleteFormResource,        
       getFormBaseUrl: getFormBaseUrl,
@@ -174,7 +176,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     }
     
     /**
-     * saveForm takes form openmrs payload and saves post it returning a promise
+     * saveForm takes form openmrs payload and post it returning a promise
      * @param form: an openmrs rest form payload
      * @return promise
      */
@@ -184,6 +186,21 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       }
       return $resource(getFormBaseUrl() + 'form').save(form).$promise;
     }
+     
+    /**
+     * updateForm post an updated existing form
+     * @param formUuid: uuid of form to be updated
+     * @param form: form payload to be posted (make sure uuid is not there)
+     * return promise of posted form
+     */
+     function updateForm(formUuid, form) {
+       if(arguments.length !== 2) {
+         throw new Error('Error: Function expects a form uuid and a payload '
+                         + ' as arguments in that order');
+       }
+       var url = getFormBaseUrl() + 'form/' + formUuid;
+       return $resource(url).save(form).$promise;
+     } 
      
     /**
      * saveFormResource() post a resource for a given form uuid
@@ -220,6 +237,20 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       var urlSuffix = 'form/' + formUuid + '/resource/' + resourceUuid;
       return $resource(getFormBaseUrl() + urlSuffix).delete().$promise;
     } 
+    
+    /**
+     * deleteFormSchemaByUuid() sends a request to remove a schema/clobdata
+     * openmrs
+     * @param schemaUuid: uuid of the schema to be deleted
+     * @return promise of the delete request
+     */
+    function deleteFormSchemaByUuid(schemaUuid) {
+      if(!schemaUuid || typeof schemaUuid !== 'string') {
+        throw new Error('Error: Function expects a schema uuid as argument');
+      }
+      var url = getFormBaseUrl() + 'clobdata/' + schemaUuid;
+      return $resource(url).delete().$promise;
+    }
     
     function wrapForms(forms) {
       var wrappedObjects = [];
