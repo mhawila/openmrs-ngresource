@@ -257,7 +257,8 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
             getEncounterByUuid: getEncounterByUuid,
             saveEncounter: saveEncounter,
             getPatientEncounters: getPatientEncounters,
-            voidEncounter: voidEncounter
+            voidEncounter: voidEncounter,
+            getEncounterTypes: getEncounterTypes
         };
 
         return service;
@@ -319,18 +320,6 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                 var uuid = _encounter.uuid;
                 delete _encounter['uuid'];
 
-                console.log('update json');
-                console.log(JSON.stringify(_encounter));
-                //updating an existing encounter
-                // Restangular.one('encounter', uuid).customPOST(JSON.stringify(_encounter)).then(function (success) {
-                //     console.log('Encounter saved successfully');
-                //     if (typeof successCallback === 'function') successCallback(success);
-                // },
-                //     function (error) {
-                //         console.log('Error saving encounter');
-                //         if (typeof errorCallback === 'function') errorCallback(error);
-                //    });
-
                 encounterResource.save({ uuid: uuid }, JSON.stringify(_encounter)).$promise
                     .then(function (data) {
                         console.log('Encounter saved successfully');
@@ -343,14 +332,6 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
                     });
             }
             else {
-                // Restangular.service('encounter').post(encounter).then(function (success) {
-                //     console.log('Encounter saved successfully');
-                //     if (typeof successCallback === 'function') successCallback(success);
-                // },
-                //     function (error) {
-                //         console.log('Error saving encounter');
-                //         if (typeof errorCallback === 'function') errorCallback(error);
-                //     });
                 encounterResource.save(encounter).$promise
                     .then(function (data) {
                         console.log('Encounter saved successfully');
@@ -416,7 +397,39 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
               return promise;
             }      
         }
-
+        
+        /**
+         * getEncounterTypes fetches encounter types currently defined in the system
+         * @param params: either a simple string standing for desired representation or
+         *        an object which can have a v(representation) and caching (true/false)
+         * @return a promise
+         */ 
+        function getEncounterTypes(params) {
+          var baseUrl = OpenmrsSettings.getCurrentRestUrlBase().trim() + 'encountertype'; 
+          if(params) {
+            if(typeof params === 'string') {
+              var type = $resource(baseUrl, {v:params}, {
+                query: { method: 'GET', isArray:false, cache: true}
+              });
+            } else {
+              // Assume an object
+                var type = $resource(baseUrl, {v:params.v}, {
+                  query: { 
+                    method: 'GET',
+                    isArray:false,
+                    cache: params.caching ? true : false}
+                });
+            }
+          } else {
+            //No params passed
+            var type = $resource(baseUrl, {}, {
+              query: { method: 'GET', isArray:false, cache: true}
+            });
+          }
+          
+          return type.query().$promise;
+        }
+        
         function _successCallbackHandler(successCallback, data) {
             if (typeof successCallback !== 'function') {
                 console.log('Error: You need a callback function to process' +
@@ -732,9 +745,11 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     serviceDefinition = {
       getFormByUuid: getFormByUuid,
       getFormSchemaByUuid: getFormSchemaByUuid,
+      deleteFormSchemaByUuid: deleteFormSchemaByUuid,
       findPocForms: findPocForms,
       uploadFormResource: uploadFormResource,
       saveForm: saveForm,
+      updateForm: updateForm,
       saveFormResource: saveFormResource,
       deleteFormResource: deleteFormResource,        
       getFormBaseUrl: getFormBaseUrl,
@@ -752,9 +767,16 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       _baseRestUrl = url;
     }
     
-    function __getResource() {
-      return $resource(getFormBaseUrl() + 'form/:uuid?v=' + FORM_REP,
-        { uuid: '@uuid' },{ query: { method: 'GET', isArray: false } });
+    function __getResource(cachingEnabled, rep) {
+      var rep = rep || FORM_REP;
+      return $resource(getFormBaseUrl() + 'form/:uuid?v=' + rep,
+        { uuid: '@uuid' },{ 
+          query: { 
+            method: 'GET',
+            isArray: false ,
+            cache: cachingEnabled? true: false 
+          } 
+        });
     }
     
     function __getSearchResource() {
@@ -774,13 +796,26 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
         __handleCallbacks(promise, successCallback, failedCallback);
         return promise;
     }
-
-    function getFormByUuid(uuid, successCallback, failedCallback) {
-      var resource = __getResource();
-      var promise = resource.get({ uuid: uuid }).$promise
+    
+    /**
+     * getFormByUuid accepts params which can be simple uuid string or an object
+     * containing uuid & representation along with caching option.
+     * @param params: can be string form uuid or object
+     * @return a promise of the rest request.
+     */
+    function getFormByUuid(params, successCallback, failedCallback) {
+      if (angular.isDefined(params) && typeof params === 'string') {
+          var formUuid = params;
+          var resource = __getResource();
+      } else {
+          var formUuid = params.uuid;
+          var rep = params.v || FORM_REP;
+          var cachingEnabled = params.caching ? true : false;
+          var resource = __getResource(cachingEnabled, rep);
+      }
+      var promise = resource.query({ uuid: formUuid }).$promise
         .then(function(data) {
           return __toModel(data);
-          // successCallback(__toModel(data));
         })
         .catch(function(err) {
            return $q.reject(err);
@@ -857,7 +892,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     }
     
     /**
-     * saveForm takes form openmrs payload and saves post it returning a promise
+     * saveForm takes form openmrs payload and post it returning a promise
      * @param form: an openmrs rest form payload
      * @return promise
      */
@@ -867,6 +902,21 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       }
       return $resource(getFormBaseUrl() + 'form').save(form).$promise;
     }
+     
+    /**
+     * updateForm post an updated existing form
+     * @param formUuid: uuid of form to be updated
+     * @param form: form payload to be posted (make sure uuid is not there)
+     * return promise of posted form
+     */
+     function updateForm(formUuid, form) {
+       if(arguments.length !== 2) {
+         throw new Error('Error: Function expects a form uuid and a payload '
+                         + ' as arguments in that order');
+       }
+       var url = getFormBaseUrl() + 'form/' + formUuid;
+       return $resource(url).save(form).$promise;
+     } 
      
     /**
      * saveFormResource() post a resource for a given form uuid
@@ -904,6 +954,20 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       return $resource(getFormBaseUrl() + urlSuffix).delete().$promise;
     } 
     
+    /**
+     * deleteFormSchemaByUuid() sends a request to remove a schema/clobdata
+     * openmrs
+     * @param schemaUuid: uuid of the schema to be deleted
+     * @return promise of the delete request
+     */
+    function deleteFormSchemaByUuid(schemaUuid) {
+      if(!schemaUuid || typeof schemaUuid !== 'string') {
+        throw new Error('Error: Function expects a schema uuid as argument');
+      }
+      var url = getFormBaseUrl() + 'clobdata/' + schemaUuid;
+      return $resource(url).delete().$promise;
+    }
+    
     function wrapForms(forms) {
       var wrappedObjects = [];
       _.each(forms, function(_form) {
@@ -918,11 +982,13 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       return {
         uuid:openmrsForm.uuid,
         name: openmrsForm.name,
+        description: openmrsForm.description,
         encounterTypeUuid: encounterType.uuid,
         encounterTypeName: encounterType.name,
         version: openmrsForm.version,
         published: openmrsForm.published,
-        resources: openmrsForm.resources || []
+        resources: openmrsForm.resources || [],
+        auditInfo: openmrsForm.auditInfo
       };
     }
     
