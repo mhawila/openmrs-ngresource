@@ -15,7 +15,8 @@ jshint -W003, -W026, -W098
       getUser: getUser,
       user: '',
       getUserByUuid: getUserByUuid,
-      findUser: findUser
+      findUser: findUser,
+      saveUpdateUserProperty:saveUpdateUserProperty
     };
 
     return service;
@@ -83,6 +84,22 @@ jshint -W003, -W026, -W098
           onError(error);
           console.error(error);
         });
+    }
+
+    function saveUpdateUserProperty(userProperty, successCallback, errorCallback) {
+      var userPropertyResource = getFullResource();
+      var uuid = userProperty.uuid;
+      delete userProperty['uuid'];
+      userPropertyResource.save({ uuid: uuid },JSON.stringify(userProperty)).$promise
+        .then(function (data) {
+          successCallback(data);
+        })
+        .catch(function (error) {
+          console.error('An Error occured when saving userProperty ', error);
+          if (typeof errorCallback === 'function')
+            errorCallback( error);
+        });
+
     }
 
 
