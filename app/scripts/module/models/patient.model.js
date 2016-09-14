@@ -32,12 +32,18 @@
       var _givenName = openmrsPatient.person.preferredName.givenName || '';
       var _middleName = openmrsPatient.person.preferredName.middleName  || '';
       var _familyName = openmrsPatient.person.preferredName.familyName || '';
+      var _preferredNameUuid = openmrsPatient.person.preferredName.uuid || '';
+      var _isPreferredName = openmrsPatient.person.preferredName.preferred || '';
       //var _preferredName=openmrsPatient.preferredName.display||'';
       var _age = openmrsPatient.person.age||0;
       var _birthdate =openmrsPatient.person.birthdate|| '';
       //var _birthdateEstimated =openmrsPatient.birthdateEstimated|| false;
       var _gender = openmrsPatient.person.gender||'';
       var _address =mapAddress(openmrsPatient.person.preferredAddress)||[];
+      var _preferredAddressUuid='';
+      if(angular.isDefined(openmrsPatient.person.preferredAddress) && openmrsPatient.person.preferredAddress!==null){
+        _preferredAddressUuid= openmrsPatient.person.preferredAddress.uuid|| '';  
+      }
       var _dead = openmrsPatient.person.dead||'';
       var _deathDate = formatDate(openmrsPatient.person.deathDate)||'';
       var _attributes = openmrsPatient.person.attributes||[];
@@ -47,7 +53,34 @@
        The convention is usually to name private properties starting with _
        e.g _uuid is the private member and accessed via the setter below
       */
-
+      
+	 modelDefinition.isPreferredName = function(value){
+        if(angular.isDefined(value)){
+          _isPreferredName = value;
+        }
+        else{
+          return _isPreferredName;
+        }
+      };
+      
+      modelDefinition.preferredNameUuid = function(value){
+        if(angular.isDefined(value)){
+          _preferredNameUuid = value;
+        }
+        else{
+          return _preferredNameUuid;
+        }
+      };
+      
+       modelDefinition.preferredAddressUuid = function(value){
+        if(angular.isDefined(value)){
+          _preferredAddressUuid = value;
+        }
+        else{
+          return _preferredAddressUuid;
+        }
+      };      
+      
       modelDefinition.identifier = function(value){
         if(angular.isDefined(value)){
           _identifier = value;
@@ -353,7 +386,10 @@
         'subCounty': preferredAddress.address2,
         'estateLandmark': preferredAddress.address3,
         'townVillage': preferredAddress.cityVillage,
-        'stateProvince': preferredAddress.stateProvince
+        'stateProvince': preferredAddress.stateProvince,
+        'preferred': preferredAddress.preferred,
+        'uuid': preferredAddress.uuid
+
 
         //Added the noAddress to aid in creating logic for hiding when the patient has no address
       } : {noAddress:'None'};

@@ -9,7 +9,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W004, -W033, -W030, -W117
       module('openmrs-ngresource.restServices');
     });
 
-    var testRestUrl = 'http://testingurl/openmrs/ws/rest/v1/';
+    var testRestUrl ='https://test1.ampath.or.ke:8443/amrs/ws/rest/v1/'
     var httpBackend;
     var encounterResService;
     var OpenmrsSettings;
@@ -101,7 +101,7 @@ jshint -W026, -W116, -W098, -W003, -W068, -W004, -W033, -W030, -W117
       httpBackend.flush();
     });
     
-    it.only('getEncounterTypes should return a promise to be fullfilled', function() {
+    it('getEncounterTypes should return a promise to be fullfilled', function() {
       httpBackend.expectGET(testRestUrl + 'encountertype').respond({results:[{
         uuid: 'type-1-uuid',
         display: 'type-1'

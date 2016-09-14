@@ -17,8 +17,8 @@
     };
     return service;
     function getResource() {
-          var v = 'custom:(uuid,identifiers:(identifier,uuid,identifierType:(uuid,name)),person:(uuid,gender,birthdate,dead,age,deathDate,causeOfDeath,preferredName:(givenName,middleName,familyName),';
-          v = v  + 'attributes,preferredAddress:(preferred,address1,address2,cityVillage,stateProvince,country,postalCode,countyDistrict,address3,address4,address5,address6)))';
+          var v = 'custom:(uuid,identifiers:(identifier,uuid,identifierType:(uuid,name)),person:(uuid,gender,birthdate,dead,age,deathDate,causeOfDeath,preferredName:(uuid,preferred,givenName,middleName,familyName),';
+          v = v  + 'attributes,preferredAddress:(uuid,preferred,address1,address2,cityVillage,stateProvince,country,postalCode,countyDistrict,address3,address4,address5,address6)))';
       var r = $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'patient/:uuid',
                 {uuid: '@uuid', v: v},
                 {query: {method: 'GET', isArray: false}});

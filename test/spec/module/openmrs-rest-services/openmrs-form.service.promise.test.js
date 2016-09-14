@@ -211,7 +211,7 @@
        httpBackend.flush();
      });
      
-     it.only('updateForm() should post to backend with correct uri', function() {
+     it('updateForm() should post to backend with correct uri', function() {
        var dummyForm = {
          name: 'New Form',
          version: '1.0'
