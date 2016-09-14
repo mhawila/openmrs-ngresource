@@ -258,6 +258,17 @@
         }
 
       };
+      modelDefinition.getMapImage = function(value) {
+        var mapImageUuid='384a8759-35bb-48e5-94da-2741f12185f5';
+        var mapImage=getPersonAttribute(mapImageUuid);
+        if(angular.isDefined(mapImage)){
+          return mapImage;
+        }
+        else{
+          return '';
+        }
+
+      };
       var _convertedAttributes = [];
       modelDefinition.getPersonAttributes = function(value) {
         _convertedAttributes.length = 0;

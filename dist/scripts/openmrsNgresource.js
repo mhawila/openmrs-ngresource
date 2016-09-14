@@ -3582,6 +3582,17 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
         }
 
       };
+      modelDefinition.getMapImage = function(value) {
+        var mapImageUuid='384a8759-35bb-48e5-94da-2741f12185f5';
+        var mapImage=getPersonAttribute(mapImageUuid);
+        if(angular.isDefined(mapImage)){
+          return mapImage;
+        }
+        else{
+          return '';
+        }
+
+      };
       var _convertedAttributes = [];
       modelDefinition.getPersonAttributes = function(value) {
         _convertedAttributes.length = 0;
@@ -4924,7 +4935,7 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
   'use strict';
 
   $templateCache.put('views/directives/obsview.html',
-    "<style> .panel-heading a:after {\n" +
+    "<style>.panel-heading a:after {\n" +
     "    font-family: 'Glyphicons Halflings';\n" +
     "    content: \"\\e114\";\n" +
     "    float: right;\n" +
@@ -4957,7 +4968,7 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
     "  .panel{\n" +
     "    padding: 2px;\n" +
     "    margin: 0px;\n" +
-    "  } </style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"> <span ng-if=\"obsItem.value\">\n" +
+    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
     "{{ obsItem.concept.name.display }}\n" +
     "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
     "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
@@ -4973,12 +4984,12 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
     "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "  </div> </script> "
+    "  </div></script>"
   );
 
 
   $templateCache.put('views/main.html',
-    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div> "
+    "<div class=\"jumbotron\"> <h1>'Allo, 'Allo!</h1> <p class=\"lead\"> <img src=\"images/yeoman.png\" alt=\"I'm Yeoman\"><br> Always a pleasure scaffolding your apps. </p> <p><a class=\"btn btn-lg btn-success\" ng-href=\"#/\">Splendid!<span class=\"glyphicon glyphicon-ok\"></span></a></p> </div> <div class=\"row marketing\"> <h4>HTML5 Boilerplate</h4> <p> HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites. </p> <h4>Angular</h4> <p> AngularJS is a toolset for building the framework most suited to your application development. </p> <h4>Karma</h4> <p>Spectacular Test Runner for JavaScript.</p> </div>"
   );
 
 }]);
