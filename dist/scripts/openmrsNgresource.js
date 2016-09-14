@@ -444,44 +444,287 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
 /* global _ */
 /*jshint -W003, -W098, -W117, -W026 */
 (function () {
-  'use strict';
+    'use strict';
 
-  angular
-    .module('openmrs-ngresource.restServices')
-    .service('IdentifierResService',IdentifierResService);
+    angular
+        .module('openmrs-ngresource.restServices')
+        .service('IdentifierResService', IdentifierResService);
 
-  IdentifierResService.$inject = ['OpenmrsSettings', '$resource'];
+    IdentifierResService.$inject = ['OpenmrsSettings', '$resource', 'Restangular'];
 
-  function IdentifierResService(OpenmrsSettings, $resource) {
-    var serviceDefinition;
-    serviceDefinition = {
-      getResource: getResource,
-      getPatientIdentifiers: getPatientIdentifiers
-    };
-    return serviceDefinition;
+    function IdentifierResService(OpenmrsSettings, $resource, Restangular) {
+        var serviceDefinition;
+        serviceDefinition = {
+            getResource: getResource,
+            getPatientIdentifiers: getPatientIdentifiers,
+            saveUpdatePatientIdentifier: saveUpdatePatientIdentifier,
+            getLuhnCheckDigit: getLuhnCheckDigit,
+            checkRegexValidity: checkRegexValidity,
+            commonIdentifierTypes: commonIdentifierTypes,
+            createIdentifierPayload: createIdentifierPayload
+        };
+        return serviceDefinition;
 
-    function getResource() {
-      return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'patient/:uuid/identifier',
-        {q: '@q'},
-        {query: {method: 'GET', isArray: false}});
+        function getResource() {
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'patient/:uuid/identifier/:patientIdentifierUuid',
+                { patientIdentifierUuid: '@patientIdentifierUuid' },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function getPatientIdentifiers(uuid, successCallback, failedCallback) {
+            var resource = getResource();
+            return resource.get({ uuid: uuid }).$promise
+                .then(function (response) {
+                    console.log('This is Identifier Object', response);
+                    successCallback(response);
+                    return response;
+                })
+                .catch(function (error) {
+                    failedCallback('Error processing request', error);
+                    console.error(error);
+                    return error;
+                });
+        }
+
+        function createIdentifierPayload(identifierType, patientIdentifier, preferred, location) {
+            return {
+                identifier: patientIdentifier,
+                identifierType: identifierType,
+                preferred: preferred,
+                location: location
+            };
+        }
+
+        function saveUpdatePatientIdentifier(params, successCallback, errorCallback) {
+            var patientUuid = params.patientUid;
+            var identifier = params.identifier;
+            var identifieruUuid = params.identifierUuid;
+            patientUuid = patientUuid;
+            var patientIdentifierResource = getResource();
+            return patientIdentifierResource.save({ uuid: patientUuid, patientIdentifierUuid: identifieruUuid }, JSON.stringify(identifier)).$promise
+                .then(function (data) {
+                    if (typeof successCallback === 'function')
+                        successCallback(data);
+                    console.log('Patient Identifier saved successfully');
+                    return data;
+                })
+                .catch(function (error) {
+                    console.error('An Error occured when saving patient Identifier ', error);
+                    if (typeof errorCallback === 'function')
+                        errorCallback('Error processing request', error);
+                    return error;
+                });
+
+        }
+
+        function getLuhnCheckDigit(number) {
+            var validChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVYWXZ_";
+            number = number.toUpperCase().trim();
+            var sum = 0;
+            for (var i = 0; i < number.length; i++) {
+                var ch = number.charAt(number.length - i - 1);
+                if (validChars.indexOf(ch) < 0) {
+                    console.log("Invalid character(s) found!");
+                    return false;
+                }
+                var digit = ch.charCodeAt(0) - 48;
+                var weight;
+                if (i % 2 == 0) {
+                    weight = (2 * digit) - parseInt(digit / 5) * 9;
+                }
+                else {
+                    weight = digit;
+                }
+                sum += weight;
+            }
+            sum = Math.abs(sum) + 10;
+            var digit = (10 - (sum % 10)) % 10;
+            console.log('Lunh Check Digit Is =' + digit);
+            return digit;
+
+        }
+
+        function checkRegexValidity(expression, identifier) {
+            var identifierRegex = new RegExp('^' + expression + '$');
+            return (identifierRegex.test(identifier));
+        }
+
+        function commonIdentifierTypes() {
+            return ['KENYAN NATIONAL ID NUMBER', 'AMRS Medical Record Number', 'AMRS Universal ID', 'CCC Number'];
+        }
     }
+})();
+/* global _ */
+/*jshint -W003, -W098, -W117, -W026 */
+(function () {
+    'use strict';
 
-    function getPatientIdentifiers(uuid, successCallback, failedCallback) {
-      var resource = getResource();
-      return resource.get({uuid: uuid}).$promise
-        .then(function (response) {
-          console.log('This is Identifier Object', response);
-          successCallback(response);
+    angular
+        .module('openmrs-ngresource.restServices')
+        .service('PersonNameResService', PersonNameResService);
 
-        })
-        .catch(function (error) {
-          failedCallback('Error processing request', error);
-          console.error(error);
-        });
+    PersonNameResService.$inject = ['OpenmrsSettings', '$resource', 'Restangular'];
+
+    function PersonNameResService(OpenmrsSettings, $resource, Restangular) {
+        var serviceDefinition;
+        serviceDefinition = {
+            getPersonNameResource: getPersonNameResource,
+            saveUpdatePersonName: saveUpdatePersonName,
+            createPersonNamePayload: createPersonNamePayload
+        };
+        return serviceDefinition;
+
+
+        function getPersonNameResource() {
+            var v = 'custom:(uuid,givenName,familyName,middleName,familyName2,preferred)';
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'person/:uuid/name/:personNameUuid',
+                { personNameUuid: '@personNameUuid', v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function createPersonNamePayload(givenName, familyName, middleName, preferred) {
+            return {
+                givenName: givenName,
+                familyName: familyName,
+                middleName: middleName,
+                preferred: preferred
+
+            };
+        }
+
+        function saveUpdatePersonName(params, successCallback, errorCallback) {
+
+            var personUuid = params.personUuid;
+            var name = params.name;
+            var personNameUuid = params.nameUuid;
+            var personNameResource = getPersonNameResource();
+            return personNameResource.save({ uuid: personUuid, personNameUuid: personNameUuid }, JSON.stringify(name)).$promise
+                .then(function (data) {
+                    if (typeof successCallback === 'function')
+                        successCallback(data);
+                    console.log('Person Name saved successfully');
+                    return data;
+                })
+                .catch(function (error) {
+                    console.error('An Error occured when saving Person Name', error);
+                    if (typeof errorCallback === 'function')
+                        errorCallback('Error processing request', error);
+                    return error;
+                });
+
+        }
+
     }
-  }
 })();
 
+/* global _ */
+/*jshint -W003, -W098, -W117, -W026 */
+(function () {
+    'use strict';
+
+    angular
+        .module('openmrs-ngresource.restServices')
+        .service('PersonAddressResService', PersonAddressResService);
+
+    PersonAddressResService.$inject = ['OpenmrsSettings', '$resource', 'Restangular'];
+
+    function PersonAddressResService(OpenmrsSettings, $resource, Restangular) {
+        var serviceDefinition;
+        serviceDefinition = {
+            getPersonAddressResource: getPersonAddressResource,
+            saveUpdatePersonAddress: saveUpdatePersonAddress,
+            createAddressPayload: createAddressPayload
+        };
+        return serviceDefinition;
+
+        function getPersonAddressResource() {
+            var v = 'custom:(uuid,preferred,address1,address2,cityVillage,stateProvince,country,postalCode,latitude,longitude,countyDistrict,address3)';
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'person/:uuid/address/:addressUuid',
+                { addressUuid: '@addressUuid', v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function createAddressPayload(address1, address2, address3, cityVillage, stateProvince, preferredAddress) {
+
+            return {
+                preferred: preferredAddress,
+                address1: address1,
+                address2: address2,
+                address3: address3,
+                cityVillage: cityVillage,
+                stateProvince: stateProvince
+
+            }
+        }
+
+        function saveUpdatePersonAddress(params, successCallback, errorCallback) {
+
+            var personUuid = params.personUuid;
+            var address = params.address;
+            var addressUuid = params.addressUuid;
+            var personAddressResource = getPersonAddressResource();
+            return personAddressResource.save({ uuid: personUuid, addressUuid: addressUuid }, JSON.stringify(address)).$promise
+                .then(function (data) {
+                    if (typeof successCallback === 'function')
+                        successCallback(data);
+                    console.log('Person Address saved successfully');
+                    return data;
+                })
+                .catch(function (error) {
+                    console.error('An Error occured when saving Person Address', error);
+                    if (typeof errorCallback === 'function')
+                        errorCallback('Error processing request', error);
+                    return error;
+                });
+
+        }
+    }
+})();
+
+/* global _ */
+/*jshint -W003, -W098, -W117, -W026 */
+(function () {
+    'use strict';
+
+    angular
+        .module('openmrs-ngresource.restServices')
+        .service('PatientIdentifierTypeResService', PatientIdentifierTypeResService);
+
+    PatientIdentifierTypeResService.$inject = ['OpenmrsSettings', '$resource', 'Restangular'];
+
+    function PatientIdentifierTypeResService(OpenmrsSettings, $resource, Restangular) {
+        var serviceDefinition;
+        serviceDefinition = {
+            getPatientIdentifierTypeResource: getPatientIdentifierTypeResource,
+            getPatientIdentifierTypes: getPatientIdentifierTypes
+        };
+        return serviceDefinition;
+
+        function getPatientIdentifierTypeResource() {
+            var v = 'custom:(uuid,name,format,formatDescription,checkDigit,validator)';
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'patientidentifiertype',
+                { v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function getPatientIdentifierTypes(successCallback, failedCallback) {
+            var resource = getPatientIdentifierTypeResource();
+            return resource.get().$promise
+                .then(function (response) {
+                    console.log('This is Identifier Type Object', response);
+                    if (typeof successCallback === 'function')
+                        successCallback(response);
+                    return response;
+                })
+                .catch(function (error) {
+                    if (typeof failedCallback === 'function')
+                        failedCallback('Error processing request', error);
+                    return error;
+                });
+        }
+
+    }
+})();
 
 /*
 jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
@@ -1031,8 +1274,8 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     };
     return service;
     function getResource() {
-          var v = 'custom:(uuid,identifiers:(identifier,uuid,identifierType:(uuid,name)),person:(uuid,gender,birthdate,dead,age,deathDate,causeOfDeath,preferredName:(givenName,middleName,familyName),';
-          v = v  + 'attributes,preferredAddress:(preferred,address1,address2,cityVillage,stateProvince,country,postalCode,countyDistrict,address3,address4,address5,address6)))';
+          var v = 'custom:(uuid,identifiers:(identifier,uuid,identifierType:(uuid,name)),person:(uuid,gender,birthdate,dead,age,deathDate,causeOfDeath,preferredName:(uuid,preferred,givenName,middleName,familyName),';
+          v = v  + 'attributes,preferredAddress:(uuid,preferred,address1,address2,cityVillage,stateProvince,country,postalCode,countyDistrict,address3,address4,address5,address6)))';
       var r = $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'patient/:uuid',
                 {uuid: '@uuid', v: v},
                 {query: {method: 'GET', isArray: false}});
@@ -3356,12 +3599,18 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
       var _givenName = openmrsPatient.person.preferredName.givenName || '';
       var _middleName = openmrsPatient.person.preferredName.middleName  || '';
       var _familyName = openmrsPatient.person.preferredName.familyName || '';
+      var _preferredNameUuid = openmrsPatient.person.preferredName.uuid || '';
+      var _isPreferredName = openmrsPatient.person.preferredName.preferred || '';
       //var _preferredName=openmrsPatient.preferredName.display||'';
       var _age = openmrsPatient.person.age||0;
       var _birthdate =openmrsPatient.person.birthdate|| '';
       //var _birthdateEstimated =openmrsPatient.birthdateEstimated|| false;
       var _gender = openmrsPatient.person.gender||'';
       var _address =mapAddress(openmrsPatient.person.preferredAddress)||[];
+      var _preferredAddressUuid='';
+      if(angular.isDefined(openmrsPatient.person.preferredAddress) && openmrsPatient.person.preferredAddress!==null){
+        _preferredAddressUuid= openmrsPatient.person.preferredAddress.uuid|| '';  
+      }
       var _dead = openmrsPatient.person.dead||'';
       var _deathDate = formatDate(openmrsPatient.person.deathDate)||'';
       var _attributes = openmrsPatient.person.attributes||[];
@@ -3371,7 +3620,34 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
        The convention is usually to name private properties starting with _
        e.g _uuid is the private member and accessed via the setter below
       */
-
+      
+	 modelDefinition.isPreferredName = function(value){
+        if(angular.isDefined(value)){
+          _isPreferredName = value;
+        }
+        else{
+          return _isPreferredName;
+        }
+      };
+      
+      modelDefinition.preferredNameUuid = function(value){
+        if(angular.isDefined(value)){
+          _preferredNameUuid = value;
+        }
+        else{
+          return _preferredNameUuid;
+        }
+      };
+      
+       modelDefinition.preferredAddressUuid = function(value){
+        if(angular.isDefined(value)){
+          _preferredAddressUuid = value;
+        }
+        else{
+          return _preferredAddressUuid;
+        }
+      };      
+      
       modelDefinition.identifier = function(value){
         if(angular.isDefined(value)){
           _identifier = value;
@@ -3677,7 +3953,10 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
         'subCounty': preferredAddress.address2,
         'estateLandmark': preferredAddress.address3,
         'townVillage': preferredAddress.cityVillage,
-        'stateProvince': preferredAddress.stateProvince
+        'stateProvince': preferredAddress.stateProvince,
+        'preferred': preferredAddress.preferred,
+        'uuid': preferredAddress.uuid
+
 
         //Added the noAddress to aid in creating logic for hiding when the patient has no address
       } : {noAddress:'None'};
