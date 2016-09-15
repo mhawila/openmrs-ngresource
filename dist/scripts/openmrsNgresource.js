@@ -726,6 +726,153 @@ jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
     }
 })();
 
+/*jshint -W003, -W098, -W117, -W026 */
+(function () {
+    'use strict';
+
+    angular
+        .module('openmrs-ngresource.restServices')
+        .service('ProgramResService', ProgramResService);
+
+    ProgramResService.$inject = ['OpenmrsSettings', '$resource'];
+
+    function ProgramResService(OpenmrsSettings, $resource) {
+        var serviceDefinition = {
+            getResource: getResource,
+            getPrograms: getPrograms
+        };
+        return serviceDefinition; 
+
+        function getResource() {
+            var v = 'full';
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'program',
+                {   v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function getPrograms(successCallback, failedCallback) {
+            var resource = getResource();
+            return resource.get().$promise
+                .then(function (response) {
+                    successCallback(response);
+                })
+                .catch(function (error) {
+                    if (typeof failedCallback === 'function')
+                        failedCallback('Error processing request', error);
+                    console.error(error);
+                });
+        }
+    }
+})();
+
+/*jshint -W003, -W098, -W117, -W026 */
+(function () {
+    'use strict';
+
+    angular
+        .module('openmrs-ngresource.restServices')
+        .service('ProgramEnrollmentResService', ProgramEnrollmentResService);
+
+    ProgramEnrollmentResService.$inject = ['OpenmrsSettings', '$resource'];
+
+    function ProgramEnrollmentResService(OpenmrsSettings, $resource) {
+        var serviceDefinition = {
+            getResource: getResource,
+            getFullResource: getFullResource,
+            getProgramEnrollmentrByUuid: getProgramEnrollmentrByUuid,
+            saveUpdateProgramEnrollment: saveUpdateProgramEnrollment,
+            getProgramEnrollmentByPatientUuid: getProgramEnrollmentByPatientUuid
+        };
+        return serviceDefinition;
+
+        function getResource() {
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'programenrollment/:uuid',
+                { uuid: '@uuid' },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        
+        function getFullResource() {
+            var v = 'full';
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'programenrollment/:uuid',
+                { uuid: '@uuid', v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function getCustomResource(customResource) {
+            if (customResource === false || customResource === undefined) return getResource();
+
+            var v = customResource === undefined || customResource === true ?
+                'custom:(display,uuid,dateEnrolled,outcome:default,dateCompleted,' +
+                'states,program:default,location:default,patient:default)' : customResource;
+            return $resource(OpenmrsSettings.getCurrentRestUrlBase().trim() + 'programenrollment/:uuid',
+            
+                { uuid: '@uuid', v: v },
+                { query: { method: 'GET', isArray: false } });
+        }
+
+        function getProgramEnrollmentrByUuid(programEnrollmentUuid, successCallback, failedCallback, customResource) {
+            var resource = getCustomResource(customResource);
+            return resource.get({ uuid: programEnrollmentUuid }).$promise
+                .then(function (response) {
+                    successCallback(response);
+                })
+                .catch(function (error) {
+                    if (typeof failedCallback === 'function')
+                        failedCallback('Error processing request', error);
+                    console.error(error);
+                });
+        }
+
+        function getProgramEnrollmentByPatientUuid(patientUuid, successCallback, failedCallback, customResource) {
+            var resource = getCustomResource(customResource);
+            return resource.get({ patient: patientUuid }).$promise
+                .then(function (response) {
+                    successCallback(response);
+                })
+                .catch(function (error) {
+                    if (typeof failedCallback === 'function')
+                        failedCallback('Error processing request', error);
+                    console.error(error);
+                });
+        }
+
+        function saveUpdateProgramEnrollment(enrollment, successCallback, failedCallback) {
+            var programEnrollmentResource = getResource();
+            
+            if (enrollment.uuid !== undefined) {
+                //update Program Enrollment
+                var uuid = enrollment.uuid;
+                delete enrollment['uuid'];
+                console.log('Enrollment Payload', JSON.stringify(enrollment));
+                return programEnrollmentResource.save({ uuid: uuid }, JSON.stringify(enrollment)).$promise
+                    .then(function (data) {
+                        successCallback(data);
+                    })
+                    .catch(function (error) {
+                        console.error('An error occured while saving the Patient Program Enrollment ', error);
+                        if (typeof failedCallback === 'function')
+                            failedCallback('Error processing request', error);
+                    });
+            }
+
+            programEnrollmentResource = getResource();
+            return programEnrollmentResource.save(enrollment).$promise
+                .then(function (data) {
+                    successCallback(data);
+                })
+                .catch(function (error) {
+                    console.error('An error occured while saving the order ', error);
+                    if (typeof failedCallback === 'function')
+                        failedCallback('Error processing request', error);
+                });
+
+        }
+
+       
+    }
+})();
+
 /*
 jshint -W026, -W116, -W098, -W003, -W068, -W069, -W004, -W033, -W030, -W117
 */
@@ -5218,55 +5365,104 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
   'use strict';
 
   $templateCache.put('views/directives/obsview.html',
-    "<style>.panel-heading a:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
+    "<style>.panel-heading a:after {\r" +
     "\n" +
-    "  .panel-heading button.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
+    "    font-family: 'Glyphicons Halflings';\r" +
     "\n" +
-    "  .panel-heading button:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
+    "    content: \"\\e114\";\r" +
     "\n" +
-    "  .panel-heading a.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
+    "    float: right;\r" +
     "\n" +
-    "  .answer {\n" +
-    "    color: green;\n" +
-    "  }\n" +
+    "    color: grey;\r" +
     "\n" +
-    "  .panel-body {\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }\n" +
-    "  .panel{\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
-    "{{ obsItem.concept.name.display }}\n" +
-    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
-    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
-    "  </span>\n" +
-    "  <span class='answer'>{{ obsItem.value.display }}</span>\n" +
-    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\n" +
-    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\n" +
-    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\n" +
-    "      {{ obsItem.concept.name.display }}\n" +
-    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\n" +
-    "    </div>\n" +
-    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\n" +
-    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
-    "      </div>\n" +
-    "    </div>\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-heading button.collapsed:after {\r" +
+    "\n" +
+    "    content: \"\\e080\";\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-heading button:after {\r" +
+    "\n" +
+    "    font-family: 'Glyphicons Halflings';\r" +
+    "\n" +
+    "    content: \"\\e114\";\r" +
+    "\n" +
+    "    float: right;\r" +
+    "\n" +
+    "    color: grey;\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-heading a.collapsed:after {\r" +
+    "\n" +
+    "    content: \"\\e080\";\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .answer {\r" +
+    "\n" +
+    "    color: green;\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-body {\r" +
+    "\n" +
+    "    padding: 2px;\r" +
+    "\n" +
+    "    margin: 0px;\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "  .panel{\r" +
+    "\n" +
+    "    padding: 2px;\r" +
+    "\n" +
+    "    margin: 0px;\r" +
+    "\n" +
+    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\r" +
+    "\n" +
+    "{{ obsItem.concept.name.display }}\r" +
+    "\n" +
+    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\r" +
+    "\n" +
+    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\r" +
+    "\n" +
+    "  </span>\r" +
+    "\n" +
+    "  <span class='answer'>{{ obsItem.value.display }}</span>\r" +
+    "\n" +
+    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\r" +
+    "\n" +
+    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\r" +
+    "\n" +
+    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\r" +
+    "\n" +
+    "      {{ obsItem.concept.name.display }}\r" +
+    "\n" +
+    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
+    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\r" +
+    "\n" +
+    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\r" +
+    "\n" +
+    "      </div>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
     "  </div></script>"
   );
 
