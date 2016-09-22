@@ -28,7 +28,7 @@
       formService = $injector.get('FormResService');
       settingsService = $injector.get('OpenmrsSettings');
       mockData = $injector.get('mockData');
-      v = $injector.get('FORM_REP');
+      v = $injector.get('DEFAULT_FORM_REP');
       $injector.get('Restangular').setBaseUrl(testUrl);
       
       // set test URL
@@ -93,12 +93,12 @@
     });
 
     it('should make an api call to the form resource when ' +
-     'findPocForms is called with a passed-text and return a promise when ' +
+     'findForms is called with a passed-text and return a promise when ' +
      'no callbacks are passed', function() {
       httpBackend.expectGET(testUrl + 'form?q=passed-text&v=' + v)
         .respond(mockData.getMockedFormList());
       
-      formService.findPocForms('passed-text').then(function(data) {
+      formService.findForms('passed-text').then(function(data) {
           expect(data[0].uuid).to.equal('passed-uuid');
           expect(data[0].encounterTypeUuid).to.equal('0010c6dffd0f');
           expect(data[0].encounterTypeName).to.equal('ADULTRETURN');
