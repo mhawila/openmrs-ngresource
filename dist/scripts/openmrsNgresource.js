@@ -1108,11 +1108,11 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     'Restangular',
     '$q',
     '$log',
-    'FORM_REP'
+    'DEFAULT_FORM_REP'
   ];
 
   function FormResService(OpenmrsSettings, $http, $resource, Restangular, $q, 
-    $log, FORM_REP) {
+    $log, DEFAULT_FORM_REP) {
     // Some local variables
     var _baseRestUrl = null;
     
@@ -1123,6 +1123,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       getFormSchemaByUuid: getFormSchemaByUuid,
       deleteFormSchemaByUuid: deleteFormSchemaByUuid,
       findPocForms: findPocForms,
+      findForms: findForms,
       uploadFormResource: uploadFormResource,
       saveForm: saveForm,
       updateForm: updateForm,
@@ -1144,24 +1145,47 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     }
     
     function __getResource(cachingEnabled, rep) {
-      var rep = rep || FORM_REP;
+      var rep = rep || DEFAULT_FORM_REP;
       return $resource(getFormBaseUrl() + 'form/:uuid?v=' + rep,
         { uuid: '@uuid' },{ 
           query: { 
             method: 'GET',
-            isArray: false ,
+            isArray: false,
             cache: cachingEnabled? true: false 
           } 
         });
     }
     
-    function __getSearchResource() {
-      return $resource(getFormBaseUrl() + 'form?q=:q&v=' + FORM_REP,
-        { q: '@q' }, { query: { method: 'GET', isArray: false } });
+    function __getSearchResource(cachingEnabled, rep) {
+      var rep = rep || DEFAULT_FORM_REP;
+      return $resource(getFormBaseUrl() + 'form?q=:q&v=' + DEFAULT_FORM_REP,
+        { q: '@q' }, {
+          query: {
+            method: 'GET',
+            isArray: false,
+            cache: cachingEnabled? true: false
+          }
+        });
     }
     
-    function findPocForms(searchText, successCallback, failedCallback) {
-      var promise = __getSearchResource().get({ q: searchText }).$promise
+    /**
+     * findForms accepts params which can be simple search string or an object
+     * containing searchText, representation and caching option.
+     * @example params: 'order' or {searchText: 'order', v: 'custom:(uuid,name)'}
+     * @param params: can be a search text or object param
+     * @return a promise of the rest request.
+     */
+    function findForms(params, successCallback, failedCallback) {
+      if(angular.isDefined(params) && typeof params === 'string') {
+        var searchText = params;
+        var resource = __getSearchResource();
+      } else {
+        var searchText = params.searchText;
+        var rep = params.v || DEFAULT_FORM_REP;
+        var cachingEnabled = params.caching ? true : false;
+        var resource = __getSearchResource(cachingEnabled, rep);
+      }
+      var promise = resource.query({ q: searchText }).$promise
         .then(function(response) {
           return wrapForms(response.results ? response.results : response);
         })
@@ -1174,6 +1198,15 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     }
     
     /**
+     *@deprecated since version 0.2.4, will be removed in version 1.0.0.
+     *Use findForms instead.
+     */
+    function findPocForms(params, successCallback, failedCallback) {
+      $log.warn('Calling deprecated function findPocForms, '
+                + 'this function will be removed in version 1.0.0');
+      return findForms(params, successCallback, failedCallback);
+    }
+    /**
      * getFormByUuid accepts params which can be simple uuid string or an object
      * containing uuid & representation along with caching option.
      * @param params: can be string form uuid or object
@@ -1185,7 +1218,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
           var resource = __getResource();
       } else {
           var formUuid = params.uuid;
-          var rep = params.v || FORM_REP;
+          var rep = params.v || DEFAULT_FORM_REP;
           var cachingEnabled = params.caching ? true : false;
           var resource = __getResource(cachingEnabled, rep);
       }
@@ -2718,8 +2751,8 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
   
   angular
     .module('openmrs-ngresource.restServices')
-    .constant('FORM_REP', 'custom:(uuid,name,encounterType:(uuid,name),version,' +
-                       'published,resources:(uuid,name,dataType,valueReference))');
+    .constant('DEFAULT_FORM_REP', 'custom:(uuid,name,encounterType:(uuid,name),version,' +
+                       'published,retired,retiredReason,resources:(uuid,name,dataType,valueReference))');
 })();
 
 /*jshint -W003, -W098, -W117, -W026, -W040, -W004 */
