@@ -3,6 +3,6 @@
   
   angular
     .module('openmrs-ngresource.restServices')
-    .constant('FORM_REP', 'custom:(uuid,name,encounterType:(uuid,name),version,' +
-                       'published,resources:(uuid,name,dataType,valueReference))');
+    .constant('DEFAULT_FORM_REP', 'custom:(uuid,name,encounterType:(uuid,name),version,' +
+                       'published,retired,retiredReason,resources:(uuid,name,dataType,valueReference))');
 })();

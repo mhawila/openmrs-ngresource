@@ -27,7 +27,7 @@
       formService = $injector.get('FormResService');
       settingsService = $injector.get('OpenmrsSettings');
       mockData = $injector.get('mockData');
-      v = $injector.get('FORM_REP');
+      v = $injector.get('DEFAULT_FORM_REP');
     }));
 
     beforeEach(inject(function() {
