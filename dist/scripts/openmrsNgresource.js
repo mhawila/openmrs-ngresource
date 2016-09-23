@@ -1127,6 +1127,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
       uploadFormResource: uploadFormResource,
       saveForm: saveForm,
       updateForm: updateForm,
+      retireForm: retireForm,
       saveFormResource: saveFormResource,
       deleteFormResource: deleteFormResource,        
       getFormBaseUrl: getFormBaseUrl,
@@ -1326,6 +1327,25 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
        var url = getFormBaseUrl() + 'form/' + formUuid;
        return $resource(url).save(form).$promise;
      } 
+     
+     /**
+      * retireForm Retires an existing form
+      * @param {string} formUuid - UUID of the form to be retired (Must)
+      * @param {string} reason - Reason for retiring the form (optional)
+      * @return {promise}  A promise of delete request
+      * @throws Will throw an error formUuid is null
+      */
+     function retireForm(formUuid, reason) {
+       if(arguments.length == 0) {
+         throw new Error('Error: Function expects a form uuid');
+       }
+       
+       var url = getFormBaseUrl() + 'form/' + formUuid;
+       if(typeof reason === 'string' && reason.length > 0) {
+         url += '?reason=' + encodeURIComponent(reason);
+       }
+       return $resource(url).delete().$promise;
+     }
      
     /**
      * saveFormResource() post a resource for a given form uuid
