@@ -3775,7 +3775,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
       var _address =mapAddress(openmrsPatient.person.preferredAddress)||[];
       var _preferredAddressUuid='';
       if(angular.isDefined(openmrsPatient.person.preferredAddress) && openmrsPatient.person.preferredAddress!==null){
-        _preferredAddressUuid= openmrsPatient.person.preferredAddress.uuid|| '';  
+        _preferredAddressUuid= openmrsPatient.person.preferredAddress.uuid|| '';
       }
       var _dead = openmrsPatient.person.dead||'';
       var _deathDate = formatDate(openmrsPatient.person.deathDate)||'';
@@ -3786,7 +3786,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
        The convention is usually to name private properties starting with _
        e.g _uuid is the private member and accessed via the setter below
       */
-      
+
 	 modelDefinition.isPreferredName = function(value){
         if(angular.isDefined(value)){
           _isPreferredName = value;
@@ -3795,7 +3795,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
           return _isPreferredName;
         }
       };
-      
+
       modelDefinition.preferredNameUuid = function(value){
         if(angular.isDefined(value)){
           _preferredNameUuid = value;
@@ -3804,7 +3804,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
           return _preferredNameUuid;
         }
       };
-      
+
        modelDefinition.preferredAddressUuid = function(value){
         if(angular.isDefined(value)){
           _preferredAddressUuid = value;
@@ -3812,8 +3812,8 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
         else{
           return _preferredAddressUuid;
         }
-      };      
-      
+      };
+
       modelDefinition.identifier = function(value){
         if(angular.isDefined(value)){
           _identifier = value;
@@ -4029,7 +4029,7 @@ function PatientRelationshipTypeResService(OpenmrsSettings,$resource,PatientRela
 
       };
       modelDefinition.getMapImage = function(value) {
-        var mapImageUuid='384a8759-35bb-48e5-94da-2741f12185f5';
+        var mapImageUuid='1a12beb8-a869-42f2-bebe-09834d40fd59';
         var mapImage=getPersonAttribute(mapImageUuid);
         if(angular.isDefined(mapImage)){
           return mapImage;
