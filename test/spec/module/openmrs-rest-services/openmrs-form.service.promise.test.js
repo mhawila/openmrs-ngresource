@@ -206,11 +206,26 @@
      'schema/clobdata', function() {
        var testUuid = 'schema-test-uuid';
        var expectUrl = testUrl + 'clobdata/' + testUuid;
-       httpBackend.expectDELETE(expectUrl).respond(200);
+       httpBackend.expectDELETE(expectUrl).respond(204);
        formService.deleteFormSchemaByUuid(testUuid);
        httpBackend.flush();
      });
      
+     it('retireForm should send a request to delete form', function() {
+       var formUuid = 'form-uuid-to-retire';
+       
+       var expectUrl = testUrl + 'form/' + formUuid;
+       httpBackend.expectDELETE(expectUrl).respond(204);
+       formService.retireForm(formUuid);
+       httpBackend.flush();
+       
+       var reason = 'no reason whatsoever!';
+       expectUrl += '?reason=' + encodeURIComponent(reason);
+       httpBackend.expectDELETE(expectUrl).respond(204);
+       formService.retireForm(formUuid, reason);
+       httpBackend.flush();
+    });
+    
      it('updateForm() should post to backend with correct uri', function() {
        var dummyForm = {
          name: 'New Form',
