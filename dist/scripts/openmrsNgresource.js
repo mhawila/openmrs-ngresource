@@ -1408,7 +1408,7 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
     
     function __toModel(openmrsForm) {
       var encounterType = openmrsForm.encounterType || {};
-      return {
+      var model = {
         uuid:openmrsForm.uuid,
         name: openmrsForm.name,
         description: openmrsForm.description,
@@ -1416,9 +1416,15 @@ jshint -W003,-W109, -W106, -W098, -W003, -W068, -W004, -W033, -W030, -W117, -W11
         encounterTypeName: encounterType.name,
         version: openmrsForm.version,
         published: openmrsForm.published,
+        retired: openmrsForm.retired,
         resources: openmrsForm.resources || [],
         auditInfo: openmrsForm.auditInfo
       };
+      
+      if(openmrsForm.retiredReason) {
+        model.retiredReason = openmrsForm.retiredReason;
+      }
+      return model;
     }
     
     // Function to handle the old callback style
