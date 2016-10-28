@@ -136,6 +136,43 @@
 
       };
 
+      modelDefinition.commonIdentifiersDisplay = function(value){
+
+        if(_identifier.length > 0) {
+          //return _identifier[0].display.split('=')[1];
+          var filteredIdentifiers;
+          var identifiers =_identifier;
+          var kenyaNationalId =getAllIdentifiersByType(identifiers, 'KENYAN NATIONAL ID NUMBER');
+          var amrsMrn =getAllIdentifiersByType(identifiers, 'AMRS Medical Record Number');
+          var ampathMrsUId=getAllIdentifiersByType(identifiers, 'AMRS Universal ID');
+          var cCC=getAllIdentifiersByType(identifiers, 'CCC Number');
+          
+          if(angular.isUndefined(kenyaNationalId) && angular.isUndefined(amrsMrn) &&
+            angular.isUndefined(ampathMrsUId) && angular.isUndefined(cCC))
+          {
+            if (angular.isDefined(_identifier[0].identifier)) {
+              filteredIdentifiers = {'default': _identifier[0].identifier};
+            }
+            else{
+              filteredIdentifiers = {'default': ''};
+            }
+          }
+          else {
+            filteredIdentifiers = {
+              'kenyaNationalId':_fromArrayToCommaSeparatedString(kenyaNationalId),
+              'amrsMrn': _fromArrayToCommaSeparatedString(amrsMrn),
+              'ampathMrsUId': _fromArrayToCommaSeparatedString(ampathMrsUId),
+              'cCC': _fromArrayToCommaSeparatedString(cCC)
+            };
+          }
+          return filteredIdentifiers;
+        }
+        else{
+          return _identifier = '';
+        }
+
+      };
+
 
       modelDefinition.uuid = function(value){
         if(angular.isDefined(value)){
@@ -405,6 +442,34 @@
         }
       }
     }
+
+     function getAllIdentifiersByType(identifiers, type ) {
+      var types = [];
+      for (var e in identifiers) {
+        if (angular.isDefined(identifiers[e].identifierType)) {
+          var idType = identifiers[e].identifierType.name;
+          var id = identifiers[e].identifier;
+          if (idType === type) {
+            types.push(id);
+          }
+        }
+      }
+
+      return types;
+    }
+
+    function _fromArrayToCommaSeparatedString(inputArray) {
+      var returnString = '';
+
+      for (var i = 0; i < inputArray.length; i++) {
+        if (i === 0)
+          returnString = inputArray[i] + returnString;
+        else
+          returnString = returnString +  ', ' +inputArray[i] ;
+      }
+      return returnString;
+    }
+    
     //format dates
     function formatDate(dateString){
       var formattedDate='';
