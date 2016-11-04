@@ -2407,78 +2407,106 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
  jshint -W098, -W003, -W068, -W004, -W033, -W026, -W030, -W117
  */
 /*jscs:disable safeContextKeyword, requireDotNotation, requirePaddingNewLinesBeforeLineComments, requireTrailingComma*/
-(function(){
+(function () {
     'use strict';
 
     angular
-            .module('openmrs-ngresource.utils')
-            .factory('CachedDataService',CachedDataService);
+        .module('openmrs-ngresource.utils')
+        .factory('CachedDataService', CachedDataService);
 
-    CachedDataService.$inject=['$rootScope'];
+    CachedDataService.$inject = ['$rootScope'];
 
-    function CachedDataService($rootScope){
-        var service={
+    function CachedDataService($rootScope) {
+        var service = {
             //locations retrieved  from the  etl server
-            getCachedEtlLocations:getCachedEtlLocations,
-            getCachedEtlLocationsByUuid:getCachedEtlLocationsByUuid,
-            getCachedLocations:getCachedLocations,
-            getCachedLocationByUuid:getCachedLocationByUuid,
-            getCachedPocForms:getCachedPocForms,
-            getCachedPatient:getCachedPatient
+            getCachedEtlLocations: getCachedEtlLocations,
+            getCachedEtlLocationsByUuid: getCachedEtlLocationsByUuid,
+            getCachedLocations: getCachedLocations,
+            getCachedLocationByUuid: getCachedLocationByUuid,
+            getCachedPocForms: getCachedPocForms,
+            getCachedPatient: getCachedPatient,
+            getCountyByLocation: getCountyByLocation
         };
 
         return service;
 
-        function getCachedEtlLocationsByUuid(locationUuid,callback){
-            var result=[];
-            angular.forEach($rootScope.cachedEtlLocations,function(value,key){
-                if(value.uuid===locationUuid){
-                    result=value
+        function getCachedEtlLocationsByUuid(locationUuid, callback) {
+            var result = [];
+            angular.forEach($rootScope.cachedEtlLocations, function (value, key) {
+                if (value.uuid === locationUuid) {
+                    result = value
                 }
             });
             callback(result);
         }
 
-        function getCachedLocations(searchText,callback){
-            var results=_.filter($rootScope.cachedLocations,
-                    function(l){
-                        // console.log('location ', l);
-                      return (_.contains(l.name.toLowerCase(),searchText.toLowerCase()));
+        function getCachedLocations(searchText, callback) {
+            var results = _.filter($rootScope.cachedLocations,
+                function (l) {
+                    // console.log('location ', l);
+                    return (_.contains(l.name.toLowerCase(), searchText.toLowerCase()));
 
 
-                    });
-
-            callback(results);
-        }
-
-        function getCachedLocationByUuid(uuid,callback){
-            var results=_.find($rootScope.cachedLocations,
-                    function(l){
-                        // console.log('location ', l);
-                        return (l.uuid===uuid);
-                    });
+                });
 
             callback(results);
         }
 
-        function getCachedFormByUuid(uuid,callback){
-            var results=_.find($rootScope.cachedPocForms,
-                    function(f){
-                        // console.log('location ', l);
-                        return (f.uuid===uuid);
-                    });
+        function getCachedLocationByUuid(uuid, callback) {
+            var results = _.find($rootScope.cachedLocations,
+                function (l) {
+                    // console.log('location ', l);
+                    return (l.uuid === uuid);
+                });
 
             callback(results);
         }
 
-        function getCachedPocForms(){
+        function getCountyByLocation(locations) {
+            var locationCounty = '';
+            var foundAlocation = false;
+            if ($rootScope.cachedLocations.length !== 0) {
+                _.each(locations.split(','), function (locationDisplay) {
+                    locationDisplay = locationDisplay.trim();
+                    _.filter($rootScope.cachedLocations, function (location) {
+                        var county = location.address4;
+                        if (county === null || county === undefined || county === "") county = 'N/A';
+                        if (location.display === locationDisplay) {
+
+                            if (!_.contains(locationCounty, county + ',')) {
+                                locationCounty = locationCounty + county + ',';
+                            }
+                            foundAlocation = true;
+                        }
+                        return location.display === locationDisplay;
+                    });
+
+                });
+            }
+
+            if (foundAlocation === false) return 'N/A';
+            locationCounty = locationCounty.replace(/,\s*$/, "");
+            return locationCounty;
+        }
+
+        function getCachedFormByUuid(uuid, callback) {
+            var results = _.find($rootScope.cachedPocForms,
+                function (f) {
+                    // console.log('location ', l);
+                    return (f.uuid === uuid);
+                });
+
+            callback(results);
+        }
+
+        function getCachedPocForms() {
             return $rootScope.cachedPocForms;
         }
 
-        function getCachedPatient(){
+        function getCachedPatient() {
             return $rootScope.broadcastPatient;
         }
-        function getCachedEtlLocations(){
+        function getCachedEtlLocations() {
             return $rootScope.cachedEtlLocations;
 
         }
@@ -5475,55 +5503,104 @@ angular.module('openmrs-ngresource.restServices').run(['$templateCache', functio
   'use strict';
 
   $templateCache.put('views/directives/obsview.html',
-    "<style>.panel-heading a:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
+    "<style>.panel-heading a:after {\r" +
     "\n" +
-    "  .panel-heading button.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
+    "    font-family: 'Glyphicons Halflings';\r" +
     "\n" +
-    "  .panel-heading button:after {\n" +
-    "    font-family: 'Glyphicons Halflings';\n" +
-    "    content: \"\\e114\";\n" +
-    "    float: right;\n" +
-    "    color: grey;\n" +
-    "  }\n" +
+    "    content: \"\\e114\";\r" +
     "\n" +
-    "  .panel-heading a.collapsed:after {\n" +
-    "    content: \"\\e080\";\n" +
-    "  }\n" +
+    "    float: right;\r" +
     "\n" +
-    "  .answer {\n" +
-    "    color: green;\n" +
-    "  }\n" +
+    "    color: grey;\r" +
     "\n" +
-    "  .panel-body {\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }\n" +
-    "  .panel{\n" +
-    "    padding: 2px;\n" +
-    "    margin: 0px;\n" +
-    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\n" +
-    "{{ obsItem.concept.name.display }}\n" +
-    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\n" +
-    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\n" +
-    "  </span>\n" +
-    "  <span class='answer'>{{ obsItem.value.display }}</span>\n" +
-    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\n" +
-    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\n" +
-    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\n" +
-    "      {{ obsItem.concept.name.display }}\n" +
-    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\n" +
-    "    </div>\n" +
-    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\n" +
-    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\n" +
-    "      </div>\n" +
-    "    </div>\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-heading button.collapsed:after {\r" +
+    "\n" +
+    "    content: \"\\e080\";\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-heading button:after {\r" +
+    "\n" +
+    "    font-family: 'Glyphicons Halflings';\r" +
+    "\n" +
+    "    content: \"\\e114\";\r" +
+    "\n" +
+    "    float: right;\r" +
+    "\n" +
+    "    color: grey;\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-heading a.collapsed:after {\r" +
+    "\n" +
+    "    content: \"\\e080\";\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .answer {\r" +
+    "\n" +
+    "    color: green;\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "  .panel-body {\r" +
+    "\n" +
+    "    padding: 2px;\r" +
+    "\n" +
+    "    margin: 0px;\r" +
+    "\n" +
+    "  }\r" +
+    "\n" +
+    "  .panel{\r" +
+    "\n" +
+    "    padding: 2px;\r" +
+    "\n" +
+    "    margin: 0px;\r" +
+    "\n" +
+    "  }</style> <div class=\"panel panel-default\"> <div class=\"panel-body\" ng-repeat=\"obsItem in obs\" ng-include=\"'obsTree'\"> </div> </div> <script type=\"text/ng-template\" id=\"obsTree\"><span ng-if=\"obsItem.value\">\r" +
+    "\n" +
+    "{{ obsItem.concept.name.display }}\r" +
+    "\n" +
+    "<span ng-if='!obsItem.concept.name.display'>{{obsItem.concept.display}}</span>\r" +
+    "\n" +
+    "<span ng-if=\"!obsItem.groupMembers.length > 0\"> > </span>\r" +
+    "\n" +
+    "  </span>\r" +
+    "\n" +
+    "  <span class='answer'>{{ obsItem.value.display }}</span>\r" +
+    "\n" +
+    "  <span  class='answer' ng-if=\"obsItem.value && !obsItem.value.display \">{{formatDate(obsItem.value) }}</span>\r" +
+    "\n" +
+    "  <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel panel-default\">\r" +
+    "\n" +
+    "    <div ng-if=\"obsItem.groupMembers.length > 0\" class=\"panel-heading\">\r" +
+    "\n" +
+    "      {{ obsItem.concept.name.display }}\r" +
+    "\n" +
+    "      <button data-toggle=\"collapse\" data-target=\"#collapse{{ $index + 1 }}\" class=\"btn  collapsed btn-xs pull-right\"></button>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
+    "    <div id=\"collapse{{ $index + 1 }}\" class=\"panel-collapse collapse\">\r" +
+    "\n" +
+    "      <div class=\"panel-body\" ng-repeat=\"obsItem in obsItem.groupMembers\" ng-include=\"'obsTree'\">\r" +
+    "\n" +
+    "      </div>\r" +
+    "\n" +
+    "    </div>\r" +
+    "\n" +
     "  </div></script>"
   );
 
