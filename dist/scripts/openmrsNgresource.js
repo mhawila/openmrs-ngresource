@@ -2469,7 +2469,8 @@ jscs:disable disallowQuotedKeysInObjects, safeContextKeyword, requireDotNotation
                 _.each(locations.split(','), function (locationDisplay) {
                     locationDisplay = locationDisplay.trim();
                     _.filter($rootScope.cachedLocations, function (location) {
-                        var county = location.address4;
+
+                        var county = location.stateProvince;
                         if (county === null || county === undefined || county === "") county = 'N/A';
                         if (location.display === locationDisplay) {
 
